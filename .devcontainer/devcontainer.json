@@ -1,0 +1,30 @@
+{
+  "name": "grasp-jaka-ros2",
+  "dockerComposeFile": "../compose.yaml",
+  "service": "grasp-dev",
+  "workspaceFolder": "/workspaces/grasp_jaka_ws",
+  "overrideCommand": false,
+  "remoteUser": "dev",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "files.associations": {
+          "*.launch.py": "python"
+        },
+        "ros.distro": "humble"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-iot.vscode-ros",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "postCreateCommand": "bash -lc 'source /opt/ros/humble/setup.bash && rosdep update || true'"
+}

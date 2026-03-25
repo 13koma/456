@@ -1,0 +1,52 @@
+[0.012s] Invoking command in '/home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /bin/cmake /home/razdvakoma/Workspace/dh_gripper_driver -DCMAKE_INSTALL_PREFIX=/home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver
+[0.134s] -- The C compiler identification is GNU 13.3.0
+[0.267s] -- The CXX compiler identification is GNU 13.3.0
+[0.315s] -- Detecting C compiler ABI info
+[0.450s] -- Detecting C compiler ABI info - done
+[0.472s] -- Check for working C compiler: /bin/cc - skipped
+[0.473s] -- Detecting C compile features
+[0.474s] -- Detecting C compile features - done
+[0.491s] -- Detecting CXX compiler ABI info
+[0.619s] -- Detecting CXX compiler ABI info - done
+[0.646s] -- Check for working CXX compiler: /bin/c++ - skipped
+[0.647s] -- Detecting CXX compile features
+[0.648s] -- Detecting CXX compile features - done
+[0.664s] -- Found ament_cmake: 2.5.3 (/opt/ros/jazzy/share/ament_cmake/cmake)
+[0.853s] -- Found Python3: /bin/python3 (found version "3.12.3") found components: Interpreter 
+[1.110s] -- Configuring done (1.1s)
+[1.113s] -- Generating done (0.0s)
+[1.116s] -- Build files have been written to: /home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver
+[1.123s] Invoked command in '/home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /bin/cmake /home/razdvakoma/Workspace/dh_gripper_driver -DCMAKE_INSTALL_PREFIX=/home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver
+[1.124s] Invoking command in '/home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /bin/cmake --build /home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver -- -j12 -l12
+[1.194s] Invoked command in '/home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /bin/cmake --build /home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver -- -j12 -l12
+[1.217s] Invoking command in '/home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /bin/cmake --install /home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver
+[1.225s] -- Install configuration: ""
+[1.225s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/lib/python3/dist-packages/dh_gripper_driver
+[1.226s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/lib/python3/dist-packages/dh_gripper_driver/ag95_modbus.py
+[1.226s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/lib/python3/dist-packages/dh_gripper_driver/__init__.py
+[1.226s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/lib/python3/dist-packages/dh_gripper_driver/__pycache__
+[1.226s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/lib/python3/dist-packages/dh_gripper_driver/__pycache__/ag95_modbus.cpython-312.pyc
+[1.226s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/lib/python3/dist-packages/dh_gripper_driver/__pycache__/__init__.cpython-312.pyc
+[1.227s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/lib/dh_gripper_driver/gripper_node.py
+[1.227s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/lib/dh_gripper_driver/test_gripper_cli.py
+[1.227s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/lib/dh_gripper_driver/test_gripper_ros2.py
+[1.227s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/config
+[1.227s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/config/gripper_params.yaml
+[1.228s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/launch
+[1.228s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/launch/gripper.launch.py
+[1.228s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/ament_index/resource_index/package_run_dependencies/dh_gripper_driver
+[1.228s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/ament_index/resource_index/parent_prefix_path/dh_gripper_driver
+[1.229s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/environment/ament_prefix_path.sh
+[1.229s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/environment/ament_prefix_path.dsv
+[1.229s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/environment/path.sh
+[1.229s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/environment/path.dsv
+[1.229s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/local_setup.bash
+[1.229s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/local_setup.sh
+[1.230s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/local_setup.zsh
+[1.230s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/local_setup.dsv
+[1.230s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/package.dsv
+[1.230s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/ament_index/resource_index/packages/dh_gripper_driver
+[1.230s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/cmake/dh_gripper_driverConfig.cmake
+[1.230s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/cmake/dh_gripper_driverConfig-version.cmake
+[1.230s] -- Installing: /home/razdvakoma/Workspace/dh_gripper_driver/install/dh_gripper_driver/share/dh_gripper_driver/package.xml
+[1.232s] Invoked command in '/home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /bin/cmake --install /home/razdvakoma/Workspace/dh_gripper_driver/build/dh_gripper_driver

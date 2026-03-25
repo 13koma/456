@@ -1,0 +1,18 @@
+# DH Robotics AG-95 Gripper Configuration
+# =========================================
+
+dh_gripper_node:
+  ros__parameters:
+    # Serial connection
+    port: "/dev/ttyUSB0"       # USB-to-RS485 adapter port
+    slave_id: 1                 # Modbus RTU slave address
+    baudrate: 115200            # Default AG-95 baud rate
+
+    # Behavior
+    publish_rate: 10.0          # State publish rate (Hz)
+    auto_initialize: false      # Initialize on startup
+    default_force: 50           # Default gripping force (%)
+    simulation_mode: false      # Run without hardware
+
+    # URDF integration
+    joint_name: "gripper_joint" # Joint name for JointState messages
