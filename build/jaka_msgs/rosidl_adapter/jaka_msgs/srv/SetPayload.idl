@@ -1,0 +1,25 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from jaka_msgs/srv/SetPayload.srv
+// generated code does not contain a copyright notice
+
+
+module jaka_msgs {
+  module srv {
+    struct SetPayload_Request {
+      int16 tool_num;
+
+      float mass;
+
+      float xc;
+
+      float yc;
+
+      float zc;
+    };
+    struct SetPayload_Response {
+      int16 ret;
+
+      string message;
+    };
+  };
+};

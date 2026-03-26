@@ -242,25 +242,34 @@ class GraspInferenceNode(Node):
             self.get_logger().warn("[MASK] valid is EMPTY — skipping")
             return
 
-        # ----- Выделение объекта: всё ближе чем (max_depth - margin) -----
-        # max = стена (дальше всех), объект ближе => меньшие значения height_hm
-        max_h = float(np.max(height_hm[valid]))
-        depth_threshold = max_h - self.object_depth_margin
-        obj_by_depth = valid & (height_hm < depth_threshold)
+        # ----- Основная маска объекта: YOLO mask, спроецированная в heightmap -----
+        yolo_mask = (mask_hm > 0)
 
-        obj_depth_count = int(np.count_nonzero(obj_by_depth))
+        # Небольшая чистка шума
+        if yolo_mask.any():
+            kernel = np.ones((3, 3), np.uint8)
+            yolo_mask = cv2.morphologyEx(
+                yolo_mask.astype(np.uint8) * 255,
+                cv2.MORPH_OPEN,
+                kernel
+            ) > 0
+
+        keep = valid & yolo_mask
+
+        # fallback только если маска пустая в valid-зоне
+        if not keep.any():
+            self.get_logger().warn("[MASK] YOLO mask is EMPTY in valid area — fallback to valid depth area")
+            keep = valid
+
         self.get_logger().info(
             f"[MASK] valid={int(np.count_nonzero(valid))} | "
-            f"obj_by_depth={obj_depth_count} (max_h={max_h:.4f}, "
-            f"threshold={depth_threshold:.4f}, margin={self.object_depth_margin})"
+            f"yolo={int(np.count_nonzero(yolo_mask))} | "
+            f"keep={int(np.count_nonzero(keep))}"
         )
-
-        keep = obj_by_depth if obj_by_depth.any() else valid
 
         if not keep.any():
             self.get_logger().warn("[MASK] keep is EMPTY — skipping")
             return
-
         q_np_masked = q_np.copy()
         q_np_masked[~keep] = -1e9
 
@@ -326,13 +335,14 @@ class GraspInferenceNode(Node):
         except Exception as e:
             self.get_logger().error(f"TF transform failed: {e}")
 
-        # ===== OBJECT CENTER (geometric centroid of depth-filtered object) =====
-        obj_mask_for_center = obj_by_depth if obj_by_depth.any() else keep
+        # ===== OBJECT CENTER (centroid of YOLO-masked object on heightmap) =====
+        obj_mask_for_center = keep
         obj_rows, obj_cols = np.where(obj_mask_for_center)
-        center_row = int(np.mean(obj_rows))
-        center_col = int(np.mean(obj_cols))
-        center_depth = float(np.mean(height_hm[obj_mask_for_center]))
 
+        center_row = int(np.round(np.mean(obj_rows)))
+        center_col = int(np.round(np.mean(obj_cols)))
+        center_depth = float(np.median(height_hm[obj_mask_for_center]))
+        
         cx_raw = float(center_depth + self.grasp_depth_offset)
         cy_raw = float(self.plane_min[0] + (self.hm_size - 1 - center_col) * self.hm_resolution)
         cz_raw = float(self.plane_min[1] + (self.hm_size - 1 - center_row) * self.hm_resolution)

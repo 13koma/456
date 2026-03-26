@@ -20,7 +20,9 @@ def generate_launch_description():
 
     # --- значения из вашего Isaac-конфига ---
     hm_size = 224
-    hm_resolution = 0.001  # HEIGHTMAP_RESOLUTION
+    # 224 * 0.002 ~= 0.448 m => окно ~44.8 x 44.8 см
+    # Должно быть согласовано с plane_min/plane_max
+    hm_resolution = 0.002
     plane_min = [-0.224, -0.224]
     plane_max = [0.224, 0.224]
     grasp_depth_offset = 0.00  # GRASP_DEPTH (base mode)

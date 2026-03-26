@@ -1,0 +1,32 @@
+[1.158s] Invoking command in '/workspaces/grasp_jaka_ws/build/grasp_inference_pkg': PYTHONPATH=/workspaces/grasp_jaka_ws/build/grasp_inference_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspaces/grasp_jaka_ws/build/grasp_inference_pkg/build --no-deps symlink_data
+[1.398s] /home/dev/.local/lib/python3.10/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+[1.399s]   warnings.warn(msg)
+[1.627s] running develop
+[1.907s] running egg_info
+[1.930s] creating grasp_inference_pkg.egg-info
+[1.931s] writing grasp_inference_pkg.egg-info/PKG-INFO
+[1.931s] writing dependency_links to grasp_inference_pkg.egg-info/dependency_links.txt
+[1.931s] writing entry points to grasp_inference_pkg.egg-info/entry_points.txt
+[1.932s] writing requirements to grasp_inference_pkg.egg-info/requires.txt
+[1.932s] writing top-level names to grasp_inference_pkg.egg-info/top_level.txt
+[1.932s] writing manifest file 'grasp_inference_pkg.egg-info/SOURCES.txt'
+[1.978s] reading manifest file 'grasp_inference_pkg.egg-info/SOURCES.txt'
+[1.979s] writing manifest file 'grasp_inference_pkg.egg-info/SOURCES.txt'
+[2.003s] running build_ext
+[2.003s] Creating /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/python3.10/site-packages/grasp-inference-pkg.egg-link (link to .)
+[2.004s] Installing grasp_node script to /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/grasp_inference_pkg
+[2.004s] Installing gripper_exec script to /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/grasp_inference_pkg
+[2.004s] Installing model_forward script to /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/grasp_inference_pkg
+[2.004s] 
+[2.005s] Installed /workspaces/grasp_jaka_ws/build/grasp_inference_pkg
+[2.005s] running symlink_data
+[2.005s] creating /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/share/ament_index/resource_index/packages
+[2.005s] symbolically linking /workspaces/grasp_jaka_ws/build/grasp_inference_pkg/resource/grasp_inference_pkg -> /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/share/ament_index/resource_index/packages
+[2.005s] symbolically linking /workspaces/grasp_jaka_ws/build/grasp_inference_pkg/package.xml -> /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/share/grasp_inference_pkg
+[2.006s] creating /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/share/grasp_inference_pkg/models
+[2.006s] symbolically linking /workspaces/grasp_jaka_ws/build/grasp_inference_pkg/models/best_yolo_s.pt -> /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/share/grasp_inference_pkg/models
+[2.006s] symbolically linking /workspaces/grasp_jaka_ws/build/grasp_inference_pkg/models/model_6600.pth -> /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/share/grasp_inference_pkg/models
+[2.007s] creating /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/share/grasp_inference_pkg/launch
+[2.007s] symbolically linking /workspaces/grasp_jaka_ws/build/grasp_inference_pkg/launch/grasp_inference.launch.py -> /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/share/grasp_inference_pkg/launch
+[2.007s] symbolically linking /workspaces/grasp_jaka_ws/build/grasp_inference_pkg/launch/grasp_inference_jaka.launch.py -> /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/share/grasp_inference_pkg/launch
+[2.052s] Invoked command in '/workspaces/grasp_jaka_ws/build/grasp_inference_pkg' returned '0': PYTHONPATH=/workspaces/grasp_jaka_ws/build/grasp_inference_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspaces/grasp_jaka_ws/build/grasp_inference_pkg/build --no-deps symlink_data

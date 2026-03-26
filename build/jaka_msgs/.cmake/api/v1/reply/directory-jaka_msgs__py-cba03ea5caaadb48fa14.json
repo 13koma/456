@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "jaka_msgs__py",
+		"source" : "/workspaces/grasp_jaka_ws/build/jaka_msgs/jaka_msgs__py"
+	}
+}

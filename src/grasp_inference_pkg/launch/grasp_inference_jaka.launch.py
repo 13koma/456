@@ -14,7 +14,8 @@ def generate_launch_description():
     inference_target_frame = "base_link"
 
     hm_size = 224
-    hm_resolution = 0.001
+    # 224 * 0.002 ~= 0.448 m => окно ~44.8 x 44.8 см
+    hm_resolution = 0.002
     plane_min = [-0.224, -0.224]
     plane_max = [0.224, 0.224]
     grasp_depth_offset = 0.00

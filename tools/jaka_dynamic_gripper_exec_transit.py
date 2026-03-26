@@ -421,6 +421,26 @@ class JakaDynamicGripperExec(Node):
         else:
             self.get_logger().info("Skipping gripper open")
 
+        # Reset accumulator and wait for fresh perception
+        self.get_logger().info("Resetting accumulator for fresh detection...")
+        self.call_trigger(self.reset_client, "reset_accumulator")
+        old_count = self.object_center_count
+        self.object_center = None
+        self.get_logger().info("Waiting for fresh object_center after reset...")
+        deadline = time.time() + 15.0
+        while rclpy.ok() and time.time() < deadline:
+            self.spin_brief(0.1)
+            if self.object_center is not None and self.object_center_count > old_count:
+                break
+        if self.object_center is None:
+            self.get_logger().error("Timeout waiting for fresh object_center after reset")
+            self.maybe_return_to_start(start_pose, "return_to_start_on_failure")
+            return False
+        self.get_logger().info(
+            f"Fresh object_center=({self.object_center.x:.3f}, {self.object_center.y:.3f}, {self.object_center.z:.3f}) "
+            f"(count: {old_count} -> {self.object_center_count})"
+        )
+
         # Stage 1: coarse center -> pregrasp
         if self.object_center is None:
             self.get_logger().error("object_center is not available")

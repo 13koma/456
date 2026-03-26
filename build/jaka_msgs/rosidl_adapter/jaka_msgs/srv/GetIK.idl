@@ -1,0 +1,19 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from jaka_msgs/srv/GetIK.srv
+// generated code does not contain a copyright notice
+
+
+module jaka_msgs {
+  module srv {
+    struct GetIK_Request {
+      sequence<float> ref_joint;
+
+      sequence<float> cartesian_pose;
+    };
+    struct GetIK_Response {
+      sequence<float> joint;
+
+      string message;
+    };
+  };
+};

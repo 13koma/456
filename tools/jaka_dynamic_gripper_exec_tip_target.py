@@ -77,6 +77,8 @@ class JakaDynamicGripperExec(Node):
         self.declare_parameter("dry_run", False)
         self.declare_parameter("preview_only", False)          # stop after stage 1
         self.declare_parameter("stop_after_stage2", False)     # stop after fresh grasp pose approach
+        self.declare_parameter("skip_stage1", False)           # skip coarse object_center targeting
+        self.declare_parameter("stage1_lift_only_m", 0.0)      # optional pure Z lift before stage2
         self.declare_parameter("preview_hold_sec", 5.0)
         self.declare_parameter("skip_gripper_open_in_preview", True)
         self.declare_parameter("return_to_start_on_preview", True)
@@ -473,45 +475,57 @@ class JakaDynamicGripperExec(Node):
         else:
             self.get_logger().info("Skipping gripper open")
 
-        # Stage 1: coarse center -> pregrasp
-        if self.object_center is None:
-            self.get_logger().error("object_center is not available")
-            self.maybe_return_to_start(start_pose, "return_to_start_on_failure")
-            return False
-
-        coarse_target = self.with_offsets(self.object_center, "coarse")
-        pre_tip_goal = Pose3(
-            coarse_target.x,
-            coarse_target.y,
-            coarse_target.z + float(self.get_parameter("pregrasp_above_m").value),
-        )
-        pre_goal = self.target_pose_for_motion(pre_tip_goal, "STAGE 1 pregrasp")
-        self.get_logger().info(
-            f"STAGE 1 source object_center=({self.object_center.x:.3f}, {self.object_center.y:.3f}, {self.object_center.z:.3f})"
-        )
-        self.get_logger().info(
-            f"STAGE 1 coarse target=({coarse_target.x:.3f}, {coarse_target.y:.3f}, {coarse_target.z:.3f})"
-        )
-        self.get_logger().info(
-            f"STAGE 1 desired tip pregrasp=({pre_tip_goal.x:.3f}, {pre_tip_goal.y:.3f}, {pre_tip_goal.z:.3f})"
-        )
         use_transit = bool(self.get_parameter("use_transit_waypoints").value)
-        if use_transit:
-            stage1_ok = self.move_via_transit(pre_goal, "STAGE 1 pregrasp")
-        else:
-            stage1_ok = self.move_until_reached(pre_goal, "STAGE 1 pregrasp")
-        if not stage1_ok:
-            self.maybe_return_to_start(start_pose, "return_to_start_on_failure")
-            return False
+        skip_stage1 = bool(self.get_parameter("skip_stage1").value)
 
-        if preview_only:
-            hold = float(self.get_parameter("preview_hold_sec").value)
-            self.get_logger().warn("preview_only=true, stopping after coarse pregrasp")
-            if hold > 0.0:
-                self.get_logger().info(f"Holding at preview pose for {hold:.1f}s")
-                self.spin_brief(hold)
-            self.maybe_return_to_start(start_pose, "return_to_start_on_preview")
-            return True
+        if skip_stage1:
+            self.get_logger().warn("skip_stage1=true, skipping coarse object_center targeting")
+            lift_only = float(self.get_parameter("stage1_lift_only_m").value)
+            if lift_only > 0.0:
+                cur = self.current_pose3()
+                lift_goal = Pose3(cur.x, cur.y, cur.z + lift_only)
+                if not self.move_until_reached(lift_goal, "STAGE 1 lift-only"):
+                    self.maybe_return_to_start(start_pose, "return_to_start_on_failure")
+                    return False
+        else:
+            # Stage 1: coarse center -> pregrasp
+            if self.object_center is None:
+                self.get_logger().error("object_center is not available")
+                self.maybe_return_to_start(start_pose, "return_to_start_on_failure")
+                return False
+
+            coarse_target = self.with_offsets(self.object_center, "coarse")
+            pre_tip_goal = Pose3(
+                coarse_target.x,
+                coarse_target.y,
+                coarse_target.z + float(self.get_parameter("pregrasp_above_m").value),
+            )
+            pre_goal = self.target_pose_for_motion(pre_tip_goal, "STAGE 1 pregrasp")
+            self.get_logger().info(
+                f"STAGE 1 source object_center=({self.object_center.x:.3f}, {self.object_center.y:.3f}, {self.object_center.z:.3f})"
+            )
+            self.get_logger().info(
+                f"STAGE 1 coarse target=({coarse_target.x:.3f}, {coarse_target.y:.3f}, {coarse_target.z:.3f})"
+            )
+            self.get_logger().info(
+                f"STAGE 1 desired tip pregrasp=({pre_tip_goal.x:.3f}, {pre_tip_goal.y:.3f}, {pre_tip_goal.z:.3f})"
+            )
+            if use_transit:
+                stage1_ok = self.move_via_transit(pre_goal, "STAGE 1 pregrasp")
+            else:
+                stage1_ok = self.move_until_reached(pre_goal, "STAGE 1 pregrasp")
+            if not stage1_ok:
+                self.maybe_return_to_start(start_pose, "return_to_start_on_failure")
+                return False
+
+            if preview_only:
+                hold = float(self.get_parameter("preview_hold_sec").value)
+                self.get_logger().warn("preview_only=true, stopping after coarse pregrasp")
+                if hold > 0.0:
+                    self.get_logger().info(f"Holding at preview pose for {hold:.1f}s")
+                    self.spin_brief(hold)
+                self.maybe_return_to_start(start_pose, "return_to_start_on_preview")
+                return True
 
         # Stage 2: reset and wait for fresh grasp pose
         settle = float(self.get_parameter("settle_after_pregrasp_sec").value)
@@ -519,22 +533,12 @@ class JakaDynamicGripperExec(Node):
             self.get_logger().info(f"Settling after pregrasp for {settle:.2f}s")
             self.spin_brief(settle)
 
-        grasp_count_before_reset = self.grasp_pose_count
-        self.get_logger().info(
-            f"Resetting accumulator before fine pose refresh | current grasp_count={grasp_count_before_reset}"
-        )
-        reset_ok = self.call_trigger(self.reset_client, "reset_accumulator")
-        if not reset_ok:
-            self.get_logger().warn("reset_accumulator failed, continuing anyway")
-
-        fresh_timeout = float(self.get_parameter("fresh_grasp_timeout_sec").value)
-        fresh_pose = self.wait_for_new_grasp_pose(grasp_count_before_reset, fresh_timeout)
+        fresh_pose = self.grasp_pose
         if fresh_pose is None:
-            self.get_logger().error(
-                f"Timeout waiting for fresh grasp pose after reset ({fresh_timeout:.1f}s)"
-            )
+            self.get_logger().error("grasp_pose is not available")
             self.maybe_return_to_start(start_pose, "return_to_start_on_failure")
             return False
+        self.get_logger().warn("Stage 2 calibration mode: using current grasp_pose without reset/refresh")
 
         fine_target = self.with_offsets(fresh_pose, "fine")
         grasp_tip_goal = Pose3(

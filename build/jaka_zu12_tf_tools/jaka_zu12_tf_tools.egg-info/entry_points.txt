@@ -1,0 +1,3 @@
+[console_scripts]
+joint_state_relay = jaka_zu12_tf_tools.joint_state_relay:main
+

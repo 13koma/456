@@ -1,0 +1,6 @@
+int16 tool_num
+float32 mass
+float32 xc
+float32 yc
+float32 zc
+

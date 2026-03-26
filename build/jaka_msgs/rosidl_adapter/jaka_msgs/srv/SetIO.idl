@@ -1,0 +1,23 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from jaka_msgs/srv/SetIO.srv
+// generated code does not contain a copyright notice
+
+
+module jaka_msgs {
+  module srv {
+    struct SetIO_Request {
+      string signal;
+
+      int16 type;
+
+      int16 index;
+
+      float value;
+    };
+    struct SetIO_Response {
+      int16 ret;
+
+      string message;
+    };
+  };
+};

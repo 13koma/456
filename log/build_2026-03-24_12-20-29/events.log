@@ -1,0 +1,48 @@
+[0.000000] (-) TimerEvent: {}
+[0.000268] (-) JobUnselected: {'identifier': 'dh_gripper_driver'}
+[0.000315] (-) JobUnselected: {'identifier': 'grasp_inference_pkg'}
+[0.000351] (-) JobUnselected: {'identifier': 'jaka_driver'}
+[0.000395] (-) JobUnselected: {'identifier': 'jaka_msgs'}
+[0.000447] (jaka_tf_tools) JobQueued: {'identifier': 'jaka_tf_tools', 'dependencies': OrderedDict()}
+[0.000485] (jaka_tf_tools) JobStarted: {'identifier': 'jaka_tf_tools'}
+[0.099520] (-) TimerEvent: {}
+[0.200464] (-) TimerEvent: {}
+[0.300992] (-) TimerEvent: {}
+[0.401808] (-) TimerEvent: {}
+[0.502225] (-) TimerEvent: {}
+[0.602642] (-) TimerEvent: {}
+[0.702950] (-) TimerEvent: {}
+[0.803213] (-) TimerEvent: {}
+[0.904769] (-) TimerEvent: {}
+[0.974672] (jaka_tf_tools) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspaces/grasp_jaka_ws/build/jaka_tf_tools/build', '--no-deps', 'symlink_data'], 'cwd': '/workspaces/grasp_jaka_ws/build/jaka_tf_tools', 'env': {'LESSOPEN': '| /usr/bin/lesspipe %s', 'TMUX': '/tmp/tmux-1000/default,2661,0', 'HOSTNAME': 'razdvakoma-HVY-WXX9', 'SHLVL': '4', 'LIBGL_ALWAYS_SOFTWARE': '1', 'LD_LIBRARY_PATH': '/workspaces/grasp_jaka_ws/install/jaka_msgs/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/home/dev', 'OLDPWD': '/workspaces/grasp_jaka_ws', 'TERM_PROGRAM_VERSION': '3.2a', 'PYTHONUNBUFFERED': '1', 'ROS_PYTHON_VERSION': '3', 'CAMERA_CMD': 'ros2 launch jaka_driver robot_start.launch.py ip:=10.5.5.100', 'JAKA_ROBOT_IP': '192.168.1.100', 'COLCON_PREFIX_PATH': '/workspaces/grasp_jaka_ws/install', 'ROS_DISTRO': 'humble', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'screen', 'ROS_LOCALHOST_ONLY': '0', 'QT_X11_NO_MITSHM': '1', 'PATH': '/home/dev/.local/bin:/home/dev/.local/bin:/home/dev/.local/bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'CAMERA_NAMESPACE': '/camera/camera', 'PIP_NO_CACHE_DIR': '1', 'DISPLAY': ':0', 'LANG': 'C.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'TERM_PROGRAM': 'tmux', 'ROS_DOMAIN_ID': '21', 'GRIPPER_PORT': '/dev/ttyUSB0', 'AMENT_PREFIX_PATH': '/workspaces/grasp_jaka_ws/install/jaka_tf_tools:/workspaces/grasp_jaka_ws/install/jaka_driver:/workspaces/grasp_jaka_ws/install/jaka_msgs:/workspaces/grasp_jaka_ws/install/grasp_inference_pkg:/workspaces/grasp_jaka_ws/install/dh_gripper_driver:/opt/ros/humble', 'DEBIAN_FRONTEND': 'noninteractive', 'SHELL': '/bin/bash', 'ROS_WS': '/workspaces/grasp_jaka_ws', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'PWD': '/workspaces/grasp_jaka_ws/build/jaka_tf_tools', 'JAKA_ROBOT_MODEL': 'zu12', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/workspaces/grasp_jaka_ws/build/jaka_tf_tools/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/python3.10/site-packages:/workspaces/grasp_jaka_ws/build/jaka_tf_tools:/workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/python3.10/site-packages:/workspaces/grasp_jaka_ws/install/jaka_msgs/local/lib/python3.10/dist-packages:/workspaces/grasp_jaka_ws/build/grasp_inference_pkg:/workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/python3.10/site-packages:/workspaces/grasp_jaka_ws/install/dh_gripper_driver/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1', 'TMUX_PANE': '%3', 'CMAKE_PREFIX_PATH': '/workspaces/grasp_jaka_ws/install/jaka_driver:/workspaces/grasp_jaka_ws/install/jaka_msgs:/workspaces/grasp_jaka_ws/install/dh_gripper_driver'}, 'shell': False}
+[1.004832] (-) TimerEvent: {}
+[1.105226] (-) TimerEvent: {}
+[1.207627] (-) TimerEvent: {}
+[1.209052] (jaka_tf_tools) StderrLine: {'line': b"/home/dev/.local/lib/python3.10/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'\n"}
+[1.209208] (jaka_tf_tools) StderrLine: {'line': b'  warnings.warn(msg)\n'}
+[1.309848] (-) TimerEvent: {}
+[1.380784] (jaka_tf_tools) StdoutLine: {'line': b'running develop\n'}
+[1.410017] (-) TimerEvent: {}
+[1.513854] (-) TimerEvent: {}
+[1.614191] (-) TimerEvent: {}
+[1.629873] (jaka_tf_tools) StdoutLine: {'line': b'running egg_info\n'}
+[1.644555] (jaka_tf_tools) StdoutLine: {'line': b'writing jaka_tf_tools.egg-info/PKG-INFO\n'}
+[1.644990] (jaka_tf_tools) StdoutLine: {'line': b'writing dependency_links to jaka_tf_tools.egg-info/dependency_links.txt\n'}
+[1.645191] (jaka_tf_tools) StdoutLine: {'line': b'writing entry points to jaka_tf_tools.egg-info/entry_points.txt\n'}
+[1.645368] (jaka_tf_tools) StdoutLine: {'line': b'writing requirements to jaka_tf_tools.egg-info/requires.txt\n'}
+[1.645487] (jaka_tf_tools) StdoutLine: {'line': b'writing top-level names to jaka_tf_tools.egg-info/top_level.txt\n'}
+[1.710850] (jaka_tf_tools) StdoutLine: {'line': b"reading manifest file 'jaka_tf_tools.egg-info/SOURCES.txt'\n"}
+[1.711017] (jaka_tf_tools) StdoutLine: {'line': b"writing manifest file 'jaka_tf_tools.egg-info/SOURCES.txt'\n"}
+[1.714243] (-) TimerEvent: {}
+[1.741187] (jaka_tf_tools) StdoutLine: {'line': b'running build_ext\n'}
+[1.741397] (jaka_tf_tools) StdoutLine: {'line': b'Creating /workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/python3.10/site-packages/jaka-tf-tools.egg-link (link to .)\n'}
+[1.742247] (jaka_tf_tools) StdoutLine: {'line': b'Installing joint_state_relay script to /workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/jaka_tf_tools\n'}
+[1.742468] (jaka_tf_tools) StdoutLine: {'line': b'Installing static_camera_tf script to /workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/jaka_tf_tools\n'}
+[1.742619] (jaka_tf_tools) StdoutLine: {'line': b'Installing tcp_tf_broadcaster script to /workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/jaka_tf_tools\n'}
+[1.742978] (jaka_tf_tools) StdoutLine: {'line': b'\n'}
+[1.743072] (jaka_tf_tools) StdoutLine: {'line': b'Installed /workspaces/grasp_jaka_ws/build/jaka_tf_tools\n'}
+[1.743167] (jaka_tf_tools) StdoutLine: {'line': b'running symlink_data\n'}
+[1.812121] (jaka_tf_tools) CommandEnded: {'returncode': 0}
+[1.814437] (-) TimerEvent: {}
+[1.825657] (jaka_tf_tools) JobEnded: {'identifier': 'jaka_tf_tools', 'rc': 0}
+[1.826684] (-) EventReactorShutdown: {}

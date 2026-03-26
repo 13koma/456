@@ -1,0 +1,19 @@
+[0.638s] Invoking command in '/workspaces/grasp_jaka_ws/build/grasp_inference_pkg': PYTHONPATH=/workspaces/grasp_jaka_ws/build/grasp_inference_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspaces/grasp_jaka_ws/build/grasp_inference_pkg/build --no-deps symlink_data
+[0.867s] running develop
+[1.007s] running egg_info
+[1.007s] writing grasp_inference_pkg.egg-info/PKG-INFO
+[1.007s] writing dependency_links to grasp_inference_pkg.egg-info/dependency_links.txt
+[1.008s] writing entry points to grasp_inference_pkg.egg-info/entry_points.txt
+[1.008s] writing requirements to grasp_inference_pkg.egg-info/requires.txt
+[1.008s] writing top-level names to grasp_inference_pkg.egg-info/top_level.txt
+[1.009s] reading manifest file 'grasp_inference_pkg.egg-info/SOURCES.txt'
+[1.010s] writing manifest file 'grasp_inference_pkg.egg-info/SOURCES.txt'
+[1.011s] running build_ext
+[1.011s] Creating /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/python3.10/site-packages/grasp-inference-pkg.egg-link (link to .)
+[1.012s] Installing grasp_node script to /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/grasp_inference_pkg
+[1.012s] Installing gripper_exec script to /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/grasp_inference_pkg
+[1.012s] Installing model_forward script to /workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/grasp_inference_pkg
+[1.013s] 
+[1.013s] Installed /workspaces/grasp_jaka_ws/build/grasp_inference_pkg
+[1.013s] running symlink_data
+[1.046s] Invoked command in '/workspaces/grasp_jaka_ws/build/grasp_inference_pkg' returned '0': PYTHONPATH=/workspaces/grasp_jaka_ws/build/grasp_inference_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspaces/grasp_jaka_ws/install/grasp_inference_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspaces/grasp_jaka_ws/build/grasp_inference_pkg/build --no-deps symlink_data

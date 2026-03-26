@@ -1,0 +1,21 @@
+[0.975s] Invoking command in '/workspaces/grasp_jaka_ws/build/jaka_tf_tools': PYTHONPATH=/workspaces/grasp_jaka_ws/build/jaka_tf_tools/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspaces/grasp_jaka_ws/build/jaka_tf_tools/build --no-deps symlink_data
+[1.209s] /home/dev/.local/lib/python3.10/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+[1.209s]   warnings.warn(msg)
+[1.380s] running develop
+[1.630s] running egg_info
+[1.644s] writing jaka_tf_tools.egg-info/PKG-INFO
+[1.645s] writing dependency_links to jaka_tf_tools.egg-info/dependency_links.txt
+[1.645s] writing entry points to jaka_tf_tools.egg-info/entry_points.txt
+[1.645s] writing requirements to jaka_tf_tools.egg-info/requires.txt
+[1.645s] writing top-level names to jaka_tf_tools.egg-info/top_level.txt
+[1.710s] reading manifest file 'jaka_tf_tools.egg-info/SOURCES.txt'
+[1.711s] writing manifest file 'jaka_tf_tools.egg-info/SOURCES.txt'
+[1.741s] running build_ext
+[1.741s] Creating /workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/python3.10/site-packages/jaka-tf-tools.egg-link (link to .)
+[1.742s] Installing joint_state_relay script to /workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/jaka_tf_tools
+[1.742s] Installing static_camera_tf script to /workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/jaka_tf_tools
+[1.742s] Installing tcp_tf_broadcaster script to /workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/jaka_tf_tools
+[1.743s] 
+[1.743s] Installed /workspaces/grasp_jaka_ws/build/jaka_tf_tools
+[1.743s] running symlink_data
+[1.813s] Invoked command in '/workspaces/grasp_jaka_ws/build/jaka_tf_tools' returned '0': PYTHONPATH=/workspaces/grasp_jaka_ws/build/jaka_tf_tools/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspaces/grasp_jaka_ws/install/jaka_tf_tools/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspaces/grasp_jaka_ws/build/jaka_tf_tools/build --no-deps symlink_data

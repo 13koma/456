@@ -1,0 +1,4 @@
+source;share/jaka_msgs/local_setup.bash
+source;share/jaka_msgs/local_setup.dsv
+source;share/jaka_msgs/local_setup.sh
+source;share/jaka_msgs/local_setup.zsh

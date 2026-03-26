@@ -1,0 +1,234 @@
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 1.3.13 (/opt/ros/humble/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+-- Override CMake install command with custom implementation using symlinks instead of copying resources
+-- Found urdf: 2.6.1 (/opt/ros/humble/share/urdf/cmake)
+-- Found xacro: 2.1.1 (/opt/ros/humble/share/xacro/cmake)
+-- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)
+-- Added test 'copyright' to check source files copyright and LICENSE
+-- Added test 'flake8' to check Python code syntax and style conventions
+-- Added test 'lint_cmake' to check CMake code style
+-- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+-- Added test 'xmllint' to check XML markup files
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /workspaces/grasp_jaka_ws/build/jaka_description
+-- Install configuration: "Debug"
+-- Execute custom install script
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_a12.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_a20.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_a5.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_c12.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_c5.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_c7.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_minicobo.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_pro12.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_pro16.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_pro18.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_pro5.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_pro7.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_s12.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_s5.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_s7.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_zu12.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_zu18.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_zu20.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_zu3.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_zu30.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_zu5.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/urdf/jaka_zu7.urdf
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a12_meshes/J1.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a12_meshes/J2.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a12_meshes/J3.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a12_meshes/J4.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a12_meshes/J5.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a12_meshes/J6.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a12_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a20_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a20_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a20_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a20_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a20_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a20_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a20_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a5_meshes/J1.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a5_meshes/J2.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a5_meshes/J3.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a5_meshes/J4.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a5_meshes/J5.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a5_meshes/J6.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_a5_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c12_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c12_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c12_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c12_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c12_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c12_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c12_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c5_meshes/Link_00.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c5_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c5_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c5_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c5_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c5_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c5_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c7_meshes/Link_00.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c7_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c7_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c7_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c7_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c7_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_c7_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_minicobo_meshes/Link0.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_minicobo_meshes/Link1.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_minicobo_meshes/Link2.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_minicobo_meshes/Link3.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_minicobo_meshes/Link4.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_minicobo_meshes/Link5.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_minicobo_meshes/Link6.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro12_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro12_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro12_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro12_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro12_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro12_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro12_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro16_meshes/Link_0.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro16_meshes/Link_1.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro16_meshes/Link_2.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro16_meshes/Link_3.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro16_meshes/Link_4.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro16_meshes/Link_5.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro16_meshes/Link_6.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro18_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro18_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro18_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro18_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro18_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro18_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro18_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro5_meshes/Link_00.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro5_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro5_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro5_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro5_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro5_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro5_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro7_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro7_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro7_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro7_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro7_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro7_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_pro7_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s12_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s12_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s12_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s12_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s12_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s12_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s12_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s5_meshes/Link_00.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s5_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s5_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s5_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s5_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s5_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s5_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s7_meshes/Link_00.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s7_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s7_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s7_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s7_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s7_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_s7_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu12_meshes/1.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu12_meshes/2.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu12_meshes/3.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu12_meshes/4.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu12_meshes/5.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu12_meshes/6.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu12_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu18_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu18_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu18_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu18_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu18_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu18_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu18_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu20_meshes/Link_01.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu20_meshes/Link_02.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu20_meshes/Link_03.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu20_meshes/Link_04.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu20_meshes/Link_05.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu20_meshes/Link_06.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu20_meshes/base_link.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu30_meshes/Empty_Link0.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu30_meshes/Empty_Link1.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu30_meshes/Empty_Link2.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu30_meshes/Empty_Link3.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu30_meshes/Empty_Link4.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu30_meshes/Empty_Link5.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu30_meshes/Empty_Link6.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu3_meshes/Link_0.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu3_meshes/Link_1.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu3_meshes/Link_2.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu3_meshes/Link_3.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu3_meshes/Link_4.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu3_meshes/Link_5.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu3_meshes/Link_6.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu5_meshes/Link1.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu5_meshes/Link2.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu5_meshes/Link3.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu5_meshes/Link4.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu5_meshes/Link5.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu5_meshes/Link6.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu5_meshes/link0.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu7_meshes/Link_0.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu7_meshes/Link_1.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu7_meshes/Link_2.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu7_meshes/Link_3.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu7_meshes/Link_4.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu7_meshes/Link_5.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/meshes/jaka_zu7_meshes/Link_6.STL
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/config/jaka_minicobo_urdf.rviz
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/config/jaka_zu12_urdf.rviz
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/config/jaka_zu18_urdf.rviz
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/config/jaka_zu3_urdf.rviz
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/config/jaka_zu5_urdf.rviz
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/config/jaka_zu7_urdf.rviz
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/launch/jaka_minicobo_rviz_control_launch.py
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/launch/jaka_pro16_rviz_control_launch.py
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/launch/jaka_pro7_rviz_control_launch.py
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/launch/jaka_zu12_rviz_control_launch.py
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/launch/jaka_zu18_rviz_control_launch.py
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/launch/jaka_zu3_rviz_control_launch.py
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/launch/jaka_zu5_rviz_control_launch.py
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/launch/jaka_zu7_rviz_control_launch.py
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/launch/test_launch.py
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/ament_index/resource_index/package_run_dependencies/jaka_description
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/ament_index/resource_index/parent_prefix_path/jaka_description
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/environment/ament_prefix_path.sh
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/environment/ament_prefix_path.dsv
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/environment/path.sh
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/environment/path.dsv
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/local_setup.bash
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/local_setup.sh
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/local_setup.zsh
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/local_setup.dsv
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/package.dsv
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/ament_index/resource_index/packages/jaka_description
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/cmake/jaka_descriptionConfig.cmake
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/cmake/jaka_descriptionConfig-version.cmake
+-- Symlinking: /workspaces/grasp_jaka_ws/install/jaka_description/share/jaka_description/package.xml
