@@ -308,9 +308,9 @@ class GraspInferenceNode(Node):
 
             pose_gripper = PoseStamped()
             pose_gripper.header = pose_base.header
-            pose_gripper.pose.position.x = pose_base.pose.position.x + (-0.026)
-            pose_gripper.pose.position.y = pose_base.pose.position.y + 0.008
-            pose_gripper.pose.position.z = pose_base.pose.position.z + (-0.12)
+            pose_gripper.pose.position.x = pose_base.pose.position.x + 0.0
+            pose_gripper.pose.position.y = pose_base.pose.position.y + 0.0
+            pose_gripper.pose.position.z = pose_base.pose.position.z + 0.0
             pose_gripper.pose.orientation.x = pose_base.pose.orientation.x
             pose_gripper.pose.orientation.y = pose_base.pose.orientation.y
             pose_gripper.pose.orientation.z = pose_base.pose.orientation.z
@@ -363,9 +363,9 @@ class GraspInferenceNode(Node):
 
             center_gripper = PoseStamped()
             center_gripper.header = center_base.header
-            center_gripper.pose.position.x = center_base.pose.position.x + (-0.026)
-            center_gripper.pose.position.y = center_base.pose.position.y + 0.008
-            center_gripper.pose.position.z = center_base.pose.position.z + (-0.12)
+            center_gripper.pose.position.x = center_base.pose.position.x + 0.0
+            center_gripper.pose.position.y = center_base.pose.position.y + 0.0
+            center_gripper.pose.position.z = center_base.pose.position.z + 0.0
             center_gripper.pose.orientation = center_base.pose.orientation
 
             self.pub_object_center_base.publish(center_gripper)

@@ -35,7 +35,7 @@ class JakaDynamicGripperExec(Node):
         self.declare_parameter("coarse_z_offset_m", 0.0)
         self.declare_parameter("pregrasp_above_m", 0.10)
 
-        # Stage 2: fresh grasp pose after reset
+        # Stage 2: descend to grasp height
         self.declare_parameter("fine_x_offset_m", 0.0)
         self.declare_parameter("fine_y_offset_m", 0.0)
         self.declare_parameter("fine_z_offset_m", 0.0)
@@ -66,7 +66,7 @@ class JakaDynamicGripperExec(Node):
         self.declare_parameter("skip_initialize", True)
         self.declare_parameter("dry_run", False)
         self.declare_parameter("preview_only", False)          # stop after stage 1
-        self.declare_parameter("stop_after_stage2", False)     # stop after fresh grasp pose approach
+        self.declare_parameter("stop_after_stage2", False)     # stop after descend
         self.declare_parameter("preview_hold_sec", 5.0)
         self.declare_parameter("skip_gripper_open_in_preview", True)
         self.declare_parameter("return_to_start_on_preview", True)
@@ -348,14 +348,6 @@ class JakaDynamicGripperExec(Node):
         self.get_logger().error(f"{stage_name}: max iterations exceeded")
         return False
 
-    def wait_for_new_grasp_pose(self, old_count: int, timeout_sec: float) -> Optional[Pose3]:
-        deadline = time.monotonic() + timeout_sec
-        while rclpy.ok() and time.monotonic() < deadline:
-            self.spin_brief(0.1)
-            if self.grasp_pose is not None and self.grasp_pose_count > old_count:
-                return self.grasp_pose
-        return None
-
     # ---------- main sequence ----------
     def run(self) -> bool:
         dry_run = bool(self.get_parameter("dry_run").value)
@@ -392,6 +384,25 @@ class JakaDynamicGripperExec(Node):
         else:
             self.get_logger().info("Skipping gripper open")
 
+        # Reset accumulator and wait for fresh perception
+        self.get_logger().info("Resetting accumulator for fresh detection...")
+        self.call_trigger(self.reset_client, "reset_accumulator")
+        old_count = self.object_center_count
+        self.object_center = None
+        self.get_logger().info("Waiting for fresh object_center after reset...")
+        deadline = time.time() + 15.0
+        while rclpy.ok() and time.time() < deadline:
+            self.spin_brief(0.1)
+            if self.object_center is not None and self.object_center_count > old_count:
+                break
+        if self.object_center is None:
+            self.get_logger().error("Timeout waiting for fresh object_center after reset")
+            return False
+        self.get_logger().info(
+            f"Fresh object_center=({self.object_center.x:.3f}, {self.object_center.y:.3f}, {self.object_center.z:.3f}) "
+            f"(count: {old_count} -> {self.object_center_count})"
+        )
+
         # Stage 1: coarse center -> pregrasp
         if self.object_center is None:
             self.get_logger().error("object_center is not available")
@@ -423,43 +434,16 @@ class JakaDynamicGripperExec(Node):
             self.maybe_return_to_start(start_pose, "return_to_start_on_preview")
             return True
 
-        # Stage 2: reset and wait for fresh grasp pose
-        settle = float(self.get_parameter("settle_after_pregrasp_sec").value)
-        if settle > 0.0:
-            self.get_logger().info(f"Settling after pregrasp for {settle:.2f}s")
-            self.spin_brief(settle)
-
-        grasp_count_before_reset = self.grasp_pose_count
-        self.get_logger().info(
-            f"Resetting accumulator before fine pose refresh | current grasp_count={grasp_count_before_reset}"
-        )
-        reset_ok = self.call_trigger(self.reset_client, "reset_accumulator")
-        if not reset_ok:
-            self.get_logger().warn("reset_accumulator failed, continuing anyway")
-
-        fresh_timeout = float(self.get_parameter("fresh_grasp_timeout_sec").value)
-        fresh_pose = self.wait_for_new_grasp_pose(grasp_count_before_reset, fresh_timeout)
-        if fresh_pose is None:
-            self.get_logger().error(
-                f"Timeout waiting for fresh grasp pose after reset ({fresh_timeout:.1f}s)"
-            )
-            self.maybe_return_to_start(start_pose, "return_to_start_on_failure")
-            return False
-
-        fine_target = self.with_offsets(fresh_pose, "fine")
+        # Stage 2: descend from pregrasp to grasp height (same XY from stage 1)
         grasp_goal = Pose3(
-            fine_target.x,
-            fine_target.y,
-            fine_target.z + float(self.get_parameter("grasp_above_m").value),
+            coarse_target.x,
+            coarse_target.y,
+            coarse_target.z + float(self.get_parameter("grasp_above_m").value),
         )
         self.get_logger().info(
-            f"STAGE 2 fresh grasp_pose=({fresh_pose.x:.3f}, {fresh_pose.y:.3f}, {fresh_pose.z:.3f})"
+            f"STAGE 2 descend to grasp: target=({grasp_goal.x:.3f}, {grasp_goal.y:.3f}, {grasp_goal.z:.3f})"
         )
-        self.get_logger().info(
-            f"STAGE 2 fine target=({fine_target.x:.3f}, {fine_target.y:.3f}, {fine_target.z:.3f})"
-        )
-
-        if not self.move_until_reached(grasp_goal, "STAGE 2 fine approach"):
+        if not self.move_until_reached(grasp_goal, "STAGE 2 descend"):
             self.maybe_return_to_start(start_pose, "return_to_start_on_failure")
             return False
 

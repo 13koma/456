@@ -81,6 +81,7 @@ def generate_launch_description():
 
                 "target_frame": inference_target_frame,
                 "transform_timeout": 1.0,
+                "apply_model_to_camera_transform": False,
             }]
         ),
 

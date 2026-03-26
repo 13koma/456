@@ -14,7 +14,7 @@ camera_frame: camera_link
 # вбок=0, вниз=-0.07 (камера выше гриппера = против Y_link6), вперёд=+0.004
 camera_xyz: [0.0, -0.07, 0.004]
 # Y_link6 вниз, Y_camera вверх → поворот π вокруг X
-camera_rpy: [1.5708, -1.5708, 0.0]
+camera_rpy: [-1.5708, 1.5708, 0.0]
 
 legacy_tcp_frame: jaka_tcp
 
