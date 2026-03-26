@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/src/dh_gripper_driver/scripts/test_gripper_cli.py

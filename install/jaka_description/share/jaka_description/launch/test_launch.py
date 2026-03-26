@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/src/jaka_description/launch/test_launch.py

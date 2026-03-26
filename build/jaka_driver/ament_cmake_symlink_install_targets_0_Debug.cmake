@@ -1,1 +1,0 @@
-ament_cmake_symlink_install_targets("TARGET_FILES" "/workspaces/grasp_jaka_ws/build/jaka_driver/jaka_driver" "/workspaces/grasp_jaka_ws/build/jaka_driver/sdk_test" "/workspaces/grasp_jaka_ws/build/jaka_driver/client" "/workspaces/grasp_jaka_ws/build/jaka_driver/servoj_demo" "TARGETS" "jaka_driver" "sdk_test" "client" "servoj_demo" "DESTINATION" "lib/jaka_driver")

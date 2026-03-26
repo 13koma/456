@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/build/jaka_description/ament_cmake_environment_hooks/local_setup.zsh

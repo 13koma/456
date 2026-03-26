@@ -15,9 +15,9 @@ def generate_launch_description():
 
     hm_size = 224
     # 224 * 0.002 ~= 0.448 m => окно ~44.8 x 44.8 см
-    hm_resolution = 0.002
-    plane_min = [-0.224, -0.224]
-    plane_max = [0.224, 0.224]
+    hm_resolution = 0.003
+    plane_min = [-0.336, -0.336]
+    plane_max = [0.336, 0.336]
     grasp_depth_offset = 0.00
 
     return LaunchDescription([

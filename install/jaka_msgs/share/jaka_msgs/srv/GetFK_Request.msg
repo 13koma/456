@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/build/jaka_msgs/rosidl_cmake/srv/GetFK_Request.msg

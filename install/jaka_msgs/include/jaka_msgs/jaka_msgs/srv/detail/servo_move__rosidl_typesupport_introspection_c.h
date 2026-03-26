@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/build/jaka_msgs/rosidl_typesupport_introspection_c/jaka_msgs/srv/detail/servo_move__rosidl_typesupport_introspection_c.h

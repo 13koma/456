@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/build/dh_gripper_driver/ament_cmake_python/dh_gripper_driver/dh_gripper_driver.egg-info/SOURCES.txt

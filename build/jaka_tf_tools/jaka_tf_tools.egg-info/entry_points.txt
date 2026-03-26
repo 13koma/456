@@ -1,4 +1,0 @@
-[console_scripts]
-joint_state_relay = jaka_tf_tools.joint_state_relay:main
-static_camera_tf = jaka_tf_tools.static_camera_tf:main
-tcp_tf_broadcaster = jaka_tf_tools.tcp_tf_broadcaster:main

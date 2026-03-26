@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/build/jaka_msgs/rosidl_generator_py/jaka_msgs/srv/__init__.py

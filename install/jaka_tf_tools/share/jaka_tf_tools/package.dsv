@@ -1,9 +1,0 @@
-source;share/jaka_tf_tools/hook/pythonpath.ps1
-source;share/jaka_tf_tools/hook/pythonpath.dsv
-source;share/jaka_tf_tools/hook/pythonpath.sh
-source;share/jaka_tf_tools/hook/ament_prefix_path.ps1
-source;share/jaka_tf_tools/hook/ament_prefix_path.dsv
-source;share/jaka_tf_tools/hook/ament_prefix_path.sh
-source;../../build/jaka_tf_tools/share/jaka_tf_tools/hook/pythonpath_develop.ps1
-source;../../build/jaka_tf_tools/share/jaka_tf_tools/hook/pythonpath_develop.dsv
-source;../../build/jaka_tf_tools/share/jaka_tf_tools/hook/pythonpath_develop.sh

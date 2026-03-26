@@ -317,9 +317,9 @@ class GraspInferenceNode(Node):
 
             pose_gripper = PoseStamped()
             pose_gripper.header = pose_base.header
-            pose_gripper.pose.position.x = pose_base.pose.position.x + 0.0
-            pose_gripper.pose.position.y = pose_base.pose.position.y + 0.0
-            pose_gripper.pose.position.z = pose_base.pose.position.z + 0.0
+            pose_gripper.pose.position.x = pose_base.pose.position.x
+            pose_gripper.pose.position.y = pose_base.pose.position.y
+            pose_gripper.pose.position.z = pose_base.pose.position.z
             pose_gripper.pose.orientation.x = pose_base.pose.orientation.x
             pose_gripper.pose.orientation.y = pose_base.pose.orientation.y
             pose_gripper.pose.orientation.z = pose_base.pose.orientation.z
@@ -342,7 +342,7 @@ class GraspInferenceNode(Node):
         center_row = int(np.round(np.mean(obj_rows)))
         center_col = int(np.round(np.mean(obj_cols)))
         center_depth = float(np.median(height_hm[obj_mask_for_center]))
-        
+
         cx_raw = float(center_depth + self.grasp_depth_offset)
         cy_raw = float(self.plane_min[0] + (self.hm_size - 1 - center_col) * self.hm_resolution)
         cz_raw = float(self.plane_min[1] + (self.hm_size - 1 - center_row) * self.hm_resolution)

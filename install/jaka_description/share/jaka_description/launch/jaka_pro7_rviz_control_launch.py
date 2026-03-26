@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/src/jaka_description/launch/jaka_pro7_rviz_control_launch.py

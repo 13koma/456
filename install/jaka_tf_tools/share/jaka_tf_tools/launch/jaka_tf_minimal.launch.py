@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/build/jaka_tf_tools/launch/jaka_tf_minimal.launch.py

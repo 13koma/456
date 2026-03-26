@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/src/jaka_zu12_tf_tools/launch/jaka_zu12_rsp.launch.py

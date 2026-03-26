@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/build/jaka_msgs/rosidl_typesupport_fastrtps_cpp/jaka_msgs/srv/detail/set_user_frame__rosidl_typesupport_fastrtps_cpp.hpp

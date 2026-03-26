@@ -1,1 +1,0 @@
-/workspaces/grasp_jaka_ws/src/grasp_inference_pkg/setup.py
