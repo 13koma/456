@@ -14,10 +14,9 @@ def generate_launch_description():
     inference_target_frame = "base_link"
 
     hm_size = 224
-    # 224 * 0.002 ~= 0.448 m => окно ~44.8 x 44.8 см
-    hm_resolution = 0.003
-    plane_min = [-0.336, -0.336]
-    plane_max = [0.336, 0.336]
+    hm_resolution = 0.001
+    plane_min = [-0.224, -0.224]
+    plane_max = [0.224, 0.224]
     grasp_depth_offset = 0.00
 
     return LaunchDescription([
@@ -40,8 +39,8 @@ def generate_launch_description():
                 "seg_conf": 0.25,
                 "seg_iou": 0.7,
                 "seg_force_cpu": False,
-                "seg_mask_persist_frames": 1,
-                "accumulate_frames": 3,
+                "seg_mask_persist_frames": 5,
+                "accumulate_frames": 10,
                 "min_coverage": 0.02,
             }]
         ),
