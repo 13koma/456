@@ -113,7 +113,7 @@ class GraspInferenceNode(Node):
         self.model_to_camera_rotation = np.array([
             [ 0, -1,  0],  # x_cam = -y_raw
             [ 0,  0, -1],  # y_cam = -z_raw
-            [ 1,  0,  0],  # z_cam = x_raw
+            [ 1,  0,  0],  # z_cam = x_raw (Z=depth)
         ], dtype=np.float32)
 
         # ---- TF2 ----

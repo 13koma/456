@@ -10,7 +10,10 @@ setup(
     packages=[package_name],
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
-        ("share/" + package_name, ["package.xml"]),
+        ("share/" + package_name + "/launch", [
+        "launch/grasp_inference.launch.py",
+        "launch/grasp_inference_jaka.launch.py",   # <-- ДОБАВИТЬ
+    ]),
         (os.path.join("share", package_name, "models"), glob("models/*")),
         (os.path.join("share", package_name, "launch"), glob("launch/*.launch.py")),
     ],
@@ -26,6 +29,7 @@ setup(
             "grasp_node = grasp_inference_pkg.grasp_node:main",
             "model_forward = grasp_inference_pkg.model_forward:main",
             "gripper_exec = grasp_inference_pkg.gripper_exec:main",
+            "gripper_exec_jaka = grasp_inference_pkg.gripper_exec_jaka:main",   # <-- ДОБАВИТЬ
         ],
     },
 )
