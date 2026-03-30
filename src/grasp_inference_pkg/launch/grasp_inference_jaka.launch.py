@@ -16,8 +16,8 @@ def generate_launch_description():
 
     hm_size = 224
     hm_resolution = 0.001
-    plane_min = [0.018, 0.675]
-    plane_max = [0.242, 0.899]
+    plane_min = [-0.186, -0.085]
+    plane_max = [0.038, 0.139]
     grasp_depth_offset = 0.03
 
     # Home position in METERS + radians (from FK of your joint home)
@@ -33,6 +33,7 @@ def generate_launch_description():
             name="heightmap_node",
             output="screen",
             parameters=[{
+                "stop_after_pregrasp": True,
                 "pcd_topic": "/camera/camera/depth/color/points",
                 "target_frame": heightmap_target_frame,
                 "pcd_mask_from_topic": "/camera/camera/color/image_raw",
@@ -91,8 +92,8 @@ def generate_launch_description():
                 "accumulator_reset_service": "/heightmap_node/reset_accumulator",
                 "tcp_pose_topic": "/jaka_driver/tool_position",
                 "linear_move_service": "/jaka_driver/linear_move",
-                "move_velocity_mm_s": 50.0,
-                "move_acceleration_mm_s2": 50.0,
+                "move_velocity_mm_s": 20.0,
+                "move_acceleration_mm_s2": 20.0,
                 "gripper_open_service": "/dh_gripper_node/open",
                 "gripper_close_service": "/dh_gripper_node/close",
                 "pregrasp_settle_distance": 0.30,
@@ -102,8 +103,13 @@ def generate_launch_description():
                 "lift_height": 0.05,
                 "above_home_height": 0.15,
                 "settle_time": 0.3,
-                "dry_run": True,
+                "dry_run": False,
                 "home_position": jaka_home_position,
+                "home_joints": [1.5698206424713135, 1.8715859651565552, 2.3616514205932617, 2.0367627143859863, 1.569820761680603, 2.3550024032592773],
+                "joint_move_service": "/jaka_driver/joint_move",
+                "ik_service": "/jaka_driver/get_ik",
+                "joint_velocity": 0.3,
+                "joint_acceleration": 0.3,
             }]
         ),
     ])

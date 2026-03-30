@@ -216,9 +216,9 @@ class GraspInferenceNode(Node):
             return
 
 
-        trick_hhm = height_hm / 2 + 0.19 
+        # trick_hhm = height_hm / 2 + 0.19  # disabled for JAKA 
 
-        x = self._preprocess(color_hm, trick_hhm)
+        x = self._preprocess(color_hm, height_hm)
 
         # Unet outputs logits -> sigmoid -> q_map in [0,1]
         logits = self.model(x)            # (1,1,H,W)
@@ -315,11 +315,15 @@ class GraspInferenceNode(Node):
             pose_base = tf2_geometry_msgs.do_transform_pose_stamped(pose_camera, transform)
             self.pub_grasp_pose_base.publish(pose_base)
 
+            grasp_corr_x = 0.0
+            grasp_corr_y = 0.0
+            grasp_corr_z = -0.05
+
             pose_gripper = PoseStamped()
             pose_gripper.header = pose_base.header
-            pose_gripper.pose.position.x = pose_base.pose.position.x
-            pose_gripper.pose.position.y = pose_base.pose.position.y
-            pose_gripper.pose.position.z = pose_base.pose.position.z
+            pose_gripper.pose.position.x = pose_base.pose.position.x + grasp_corr_x
+            pose_gripper.pose.position.y = pose_base.pose.position.y + grasp_corr_y
+            pose_gripper.pose.position.z = pose_base.pose.position.z + grasp_corr_z
             pose_gripper.pose.orientation.x = pose_base.pose.orientation.x
             pose_gripper.pose.orientation.y = pose_base.pose.orientation.y
             pose_gripper.pose.orientation.z = pose_base.pose.orientation.z
@@ -371,21 +375,26 @@ class GraspInferenceNode(Node):
             )
             center_base = tf2_geometry_msgs.do_transform_pose_stamped(center_camera, tf_center)
 
-            center_gripper = PoseStamped()
-            center_gripper.header = center_base.header
-            center_gripper.pose.position.x = center_base.pose.position.x + 0.0
-            center_gripper.pose.position.y = center_base.pose.position.y + 0.0
-            center_gripper.pose.position.z = center_base.pose.position.z + 0.0
-            center_gripper.pose.orientation = center_base.pose.orientation
+            pre_corr_x = 0.125
+            pre_corr_y = 0.14
 
-            self.pub_object_center_base.publish(center_gripper)
+            center_corr = PoseStamped()
+            center_corr.header = center_base.header
+            center_corr.pose.position.x = center_base.pose.position.x + pre_corr_x
+            center_corr.pose.position.y = center_base.pose.position.y + pre_corr_y
+            center_corr.pose.position.z = center_base.pose.position.z
+            center_corr.pose.orientation = center_base.pose.orientation
+
+            self.pub_object_center_base.publish(center_corr)
+
             self.get_logger().info(
-                f"[CENTER] tcp:     x={center_base.pose.position.x:.3f} "
-                f"y={center_base.pose.position.y:.3f} z={center_base.pose.position.z:.3f}\n"
-                f"[CENTER] gripper: x={center_gripper.pose.position.x:.3f} "
-                f"y={center_gripper.pose.position.y:.3f} z={center_gripper.pose.position.z:.3f} "
+                f"[CENTER] base: x={center_base.pose.position.x:.3f} "
+                f"y={center_base.pose.position.y:.3f} z={center_base.pose.position.z:.3f} | "
+                f"corr: x={center_corr.pose.position.x:.3f} "
+                f"y={center_corr.pose.position.y:.3f} z={center_corr.pose.position.z:.3f} "
                 f"pixel=({center_row},{center_col}) depth={center_depth:.4f}"
             )
+
         except Exception as e:
             self.get_logger().error(f"TF transform for object center failed: {e}")
 
