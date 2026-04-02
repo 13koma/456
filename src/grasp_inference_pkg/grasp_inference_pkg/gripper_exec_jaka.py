@@ -11,13 +11,17 @@ gripper_exec_jaka.py — Grasp execution node for JAKA ZU12 + DH AG-95 gripper.
 
 from __future__ import annotations
 
+import math
 import time
 import threading
 
+import cv2
+import numpy as np
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from std_srvs.srv import Trigger
+from visualization_msgs.msg import Marker
 
 
 class GripperExecNode(Node):
@@ -33,6 +37,8 @@ class GripperExecNode(Node):
         self.declare_parameter("move_acceleration_mm_s2", 20.0)
         self.declare_parameter("joint_velocity", 0.3)
         self.declare_parameter("joint_acceleration", 0.3)
+        self.declare_parameter("home_joint_velocity", 0.3)
+        self.declare_parameter("home_joint_acceleration", 0.3)
         self.declare_parameter("gripper_open_service", "/dh_gripper_node/open")
         self.declare_parameter("gripper_close_service", "/dh_gripper_node/close")
         self.declare_parameter("auto_execute", True)
@@ -42,6 +48,12 @@ class GripperExecNode(Node):
         self.declare_parameter("home_position", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         self.declare_parameter("home_joints", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         self.declare_parameter("above_home_height", 0.15)
+        self.declare_parameter("tcp_to_tip_offset_m", [0.0, 0.0, 0.15])
+        self.declare_parameter("debug_publish_targets", True)
+        self.declare_parameter("debug_frame_id", "base_link")
+        self.declare_parameter("use_live_tcp_orientation", True)
+        self.declare_parameter("use_linear_pregrasp", False)
+        self.declare_parameter("use_joint_move_for_grasp_path", False)
 
         # dynamic pregrasp params
         self.declare_parameter("pregrasp_mode", "fixed")
@@ -53,6 +65,8 @@ class GripperExecNode(Node):
         self.declare_parameter("settle_time", 0.3)
         self.declare_parameter("dry_run", False)
         self.declare_parameter("stop_after_pregrasp", False)
+        self.declare_parameter("release_at_above_home", True)
+        self.declare_parameter("wait_after_release", 0.8)
 
         grasp_topic = self.get_parameter("grasp_pose_topic").value
         tcp_topic = self.get_parameter("tcp_pose_topic").value
@@ -60,6 +74,8 @@ class GripperExecNode(Node):
         self.move_acc = float(self.get_parameter("move_acceleration_mm_s2").value)
         self.joint_vel = float(self.get_parameter("joint_velocity").value)
         self.joint_acc = float(self.get_parameter("joint_acceleration").value)
+        self.home_joint_vel = float(self.get_parameter("home_joint_velocity").value)
+        self.home_joint_acc = float(self.get_parameter("home_joint_acceleration").value)
         gripper_open_srv_name = self.get_parameter("gripper_open_service").value
         gripper_close_srv_name = self.get_parameter("gripper_close_service").value
         self.auto_execute = bool(self.get_parameter("auto_execute").value)
@@ -69,6 +85,17 @@ class GripperExecNode(Node):
         self.home_pos = [float(v) for v in self.get_parameter("home_position").value]
         self.home_joints = [float(v) for v in self.get_parameter("home_joints").value]
         self.above_home_height = float(self.get_parameter("above_home_height").value)
+        self.tcp_to_tip_offset = np.array(
+            [float(v) for v in self.get_parameter("tcp_to_tip_offset_m").value],
+            dtype=np.float64,
+        )
+        self.debug_publish_targets = bool(self.get_parameter("debug_publish_targets").value)
+        self.debug_frame_id = str(self.get_parameter("debug_frame_id").value)
+        self.use_live_tcp_orientation = bool(self.get_parameter("use_live_tcp_orientation").value)
+        self.use_linear_pregrasp = bool(self.get_parameter("use_linear_pregrasp").value)
+        self.use_joint_move_for_grasp_path = bool(
+            self.get_parameter("use_joint_move_for_grasp_path").value
+        )
         self.pregrasp_mode = (self.get_parameter("pregrasp_mode").value or "fixed").strip().lower()
         self.pregrasp_settle_dist = float(self.get_parameter("pregrasp_settle_distance").value)
         self.pregrasp_z_offset = float(self.get_parameter("pregrasp_z_offset").value)
@@ -78,6 +105,8 @@ class GripperExecNode(Node):
         self.settle_time = float(self.get_parameter("settle_time").value)
         self.dry_run = bool(self.get_parameter("dry_run").value)
         self.stop_after_pregrasp = bool(self.get_parameter("stop_after_pregrasp").value)
+        self.release_at_above_home = bool(self.get_parameter("release_at_above_home").value)
+        self.wait_after_release = float(self.get_parameter("wait_after_release").value)
 
         # last known joint positions (updated after each joint_move)
         self._last_joints = list(self.home_joints)
@@ -85,7 +114,9 @@ class GripperExecNode(Node):
         self.latest_grasp_pose: PoseStamped | None = None
         self.current_tcp_mm: list[float] | None = None
         self.is_executing = False
-        self.one_shot_done = False
+        self._start_pending = False
+        self._state = "idle"
+        self._latest_grasp_event = threading.Event()
 
         self._object_center_pose: PoseStamped | None = None
         self._object_center_event = threading.Event()
@@ -128,6 +159,22 @@ class GripperExecNode(Node):
         self._gripper_open_client = self.create_client(Trigger, gripper_open_srv_name)
         self._gripper_close_client = self.create_client(Trigger, gripper_close_srv_name)
 
+        self.pub_debug_current_tcp = self.create_publisher(PoseStamped, "~/debug/current_tcp", 10)
+        self.pub_debug_current_tip = self.create_publisher(PoseStamped, "~/debug/current_tip", 10)
+        self.pub_debug_target_tcp = self.create_publisher(PoseStamped, "~/debug/target_tcp", 10)
+        self.pub_debug_target_tip = self.create_publisher(PoseStamped, "~/debug/target_tip", 10)
+        self.pub_debug_input_object_center = self.create_publisher(PoseStamped, "~/debug/input_object_center", 10)
+        self.pub_debug_input_grasp_pose = self.create_publisher(PoseStamped, "~/debug/input_grasp_pose", 10)
+        self.pub_debug_markers = self.create_publisher(Marker, "~/debug/markers", 20)
+
+        self.create_service(Trigger, "~/start", self._srv_start)
+        self.create_service(Trigger, "~/start_dry_run", self._srv_start_dry_run)
+        self.create_service(Trigger, "~/go_home", self._srv_go_home)
+        self.create_service(Trigger, "~/open_gripper", self._srv_open_gripper)
+        self.create_service(Trigger, "~/close_gripper", self._srv_close_gripper)
+        self.create_service(Trigger, "~/reset", self._srv_reset)
+        self.create_service(Trigger, "~/status", self._srv_status)
+
         self.get_logger().info("=" * 60)
         self.get_logger().info("GripperExecNode (JAKA ZU12 + DH AG-95) — IK mode")
         self.get_logger().info(f"  home (m): [{', '.join(f'{v:.4f}' for v in self.home_pos)}]")
@@ -135,12 +182,42 @@ class GripperExecNode(Node):
         self.get_logger().info(
             f"  mode: {self.pregrasp_mode} | joint_vel: {self.joint_vel} | dry_run: {self.dry_run}"
         )
+        self.get_logger().info(
+            f"  home_joint_velocity: {self.home_joint_vel} | home_joint_acceleration: {self.home_joint_acc}"
+        )
+        self.get_logger().info(
+            f"  tcp_to_tip_offset_m: [{', '.join(f'{v:.4f}' for v in self.tcp_to_tip_offset.tolist())}]"
+        )
+        self.get_logger().info(
+            f"  use_live_tcp_orientation: {self.use_live_tcp_orientation} "
+            f"(False = keep home/tool orientation fixed)"
+        )
+        self.get_logger().info(
+            f"  use_linear_pregrasp: {self.use_linear_pregrasp} "
+            f"(True = avoid IK branch changes on approach)"
+        )
+        self.get_logger().info(
+            f"  use_joint_move_for_grasp_path: {self.use_joint_move_for_grasp_path} "
+            f"(True = bypass linear_move for pregrasp/grasp/lift)"
+        )
+        self.get_logger().info(
+            f"  release_at_above_home: {self.release_at_above_home} | "
+            f"wait_after_release: {self.wait_after_release}"
+        )
         if self.pregrasp_mode == "dynamic":
             self.get_logger().info(
                 f"  pregrasp_settle_distance: {self.pregrasp_settle_dist} m | "
                 f"pregrasp_z_offset: {self.pregrasp_z_offset} m (Z = home_z + this)"
             )
             self.get_logger().info(f"  stop_after_pregrasp: {self.stop_after_pregrasp}")
+        self.get_logger().info(
+            f"  auto_execute: {self.auto_execute} "
+            f"(services: ~/start ~/go_home ~/open_gripper ~/close_gripper ~/reset ~/status)"
+        )
+        if self.auto_execute:
+            self._boot_timer = self.create_timer(1.0, self._auto_start_once)
+        else:
+            self._boot_timer = None
 
     # ===== callbacks =====
 
@@ -154,39 +231,61 @@ class GripperExecNode(Node):
             float(msg.twist.angular.y),
             float(msg.twist.angular.z),
         ]
+        if self.debug_publish_targets:
+            cur_tcp = np.array([
+                self.current_tcp_mm[0] / 1000.0,
+                self.current_tcp_mm[1] / 1000.0,
+                self.current_tcp_mm[2] / 1000.0,
+            ], dtype=np.float64)
+            rx, ry, rz = self._get_motion_rpy()
+            cur_tip = cur_tcp + (self._rpy_to_rot_matrix(rx, ry, rz) @ self.tcp_to_tip_offset)
+            self.pub_debug_current_tcp.publish(self._xyz_to_pose(cur_tcp[0], cur_tcp[1], cur_tcp[2]))
+            self.pub_debug_current_tip.publish(self._xyz_to_pose(cur_tip[0], cur_tip[1], cur_tip[2]))
 
     def _on_grasp_pose(self, msg: PoseStamped):
-        if self.one_shot_done:
-            return
         self.latest_grasp_pose = msg
-        self.one_shot_done = True
-        try:
-            self.destroy_subscription(self.sub_grasp)
-        except Exception:
-            pass
-        threading.Thread(target=self.execute_grasp_sequence, daemon=True).start()
+        self._latest_grasp_event.set()
+        if self.debug_publish_targets:
+            self.pub_debug_input_grasp_pose.publish(msg)
+            self._publish_marker("input_grasp", 30, msg.pose.position.x, msg.pose.position.y, msg.pose.position.z, 1.0, 0.2, 0.2)
 
     def _on_object_center(self, msg: PoseStamped):
         self._object_center_pose = msg
         self._object_center_event.set()
+        if self.debug_publish_targets:
+            self.pub_debug_input_object_center.publish(msg)
+            self._publish_marker("object_center", 10, msg.pose.position.x, msg.pose.position.y, msg.pose.position.z, 1.0, 1.0, 0.0)
 
     def _on_grasp_pose_dynamic(self, msg: PoseStamped):
+        self.latest_grasp_pose = msg
+        self._latest_grasp_event.set()
         stamp_ns = msg.header.stamp.sec * 1_000_000_000 + msg.header.stamp.nanosec
         if stamp_ns < self._accept_fresh_after_ns:
             return
         self._fresh_grasp_pose = msg
         self._fresh_grasp_event.set()
+        if self.debug_publish_targets:
+            self.pub_debug_input_grasp_pose.publish(msg)
+            self._publish_marker("input_grasp", 30, msg.pose.position.x, msg.pose.position.y, msg.pose.position.z, 1.0, 0.2, 0.2)
 
     # ===== fixed mode =====
 
     def execute_grasp_sequence(self):
         self._wait_for_jaka_ready()
+        if self.latest_grasp_pose is None:
+            self.get_logger().info("Waiting for grasp pose...")
+            self._latest_grasp_event.clear()
+            if not self._latest_grasp_event.wait(timeout=self.fresh_pose_timeout):
+                raise RuntimeError("Timeout waiting for grasp pose")
+            if self.latest_grasp_pose is None:
+                raise RuntimeError("No grasp pose available after wait")
         gx = self.latest_grasp_pose.pose.position.x
         gy = self.latest_grasp_pose.pose.position.y
         gz = self.latest_grasp_pose.pose.position.z
         hx, hy, hz = self.home_pos[0], self.home_pos[1], self.home_pos[2]
-        hrx, hry, hrz = self.home_pos[3], self.home_pos[4], self.home_pos[5]
+        motion_rx, motion_ry, motion_rz = self._get_motion_rpy()
 
+        self._set_state("executing-fixed")
         self.is_executing = True
         t_start = time.perf_counter()
         try:
@@ -199,10 +298,18 @@ class GripperExecNode(Node):
 
             pre_z = gz + self.pregrasp_z_offset
             self.get_logger().info("[3/8] → pre-grasp")
-            self._move_via_ik([gx, gy, pre_z, hrx, hry, hrz], "pre-grasp")
+            if self.use_joint_move_for_grasp_path:
+                self._move_tip_target_via_ik(gx, gy, pre_z, motion_rx, motion_ry, motion_rz, "pre-grasp")
+            elif self.use_linear_pregrasp:
+                self._linear_move_tip_target(gx, gy, pre_z, motion_rx, motion_ry, motion_rz, "pre-grasp")
+            else:
+                self._move_tip_target_via_ik(gx, gy, pre_z, motion_rx, motion_ry, motion_rz, "pre-grasp")
 
             self.get_logger().info("[4/8] → grasp (linear)")
-            self._linear_move([gx, gy, gz, hrx, hry, hrz], "grasp")
+            if self.use_joint_move_for_grasp_path:
+                self._move_tip_target_via_ik(gx, gy, gz, motion_rx, motion_ry, motion_rz, "grasp")
+            else:
+                self._linear_move_tip_target(gx, gy, gz, motion_rx, motion_ry, motion_rz, "grasp")
 
             self.get_logger().info("[5/8] gripper close")
             self._close_gripper()
@@ -210,54 +317,60 @@ class GripperExecNode(Node):
 
             lift_z = gz + self.lift_height
             self.get_logger().info("[6/8] → lift")
-            self._linear_move([gx, gy, lift_z, hrx, hry, hrz], "lift")
+            if self.use_joint_move_for_grasp_path:
+                self._move_tip_target_via_ik(gx, gy, lift_z, motion_rx, motion_ry, motion_rz, "lift")
+            else:
+                self._linear_move_tip_target(gx, gy, lift_z, motion_rx, motion_ry, motion_rz, "lift")
 
             above_z = hz + self.above_home_height
             self.get_logger().info("[7/8] → above home")
-            self._move_via_ik([hx, hy, above_z, hrx, hry, hrz], "above-home")
+            self._move_via_ik([hx, hy, above_z, motion_rx, motion_ry, motion_rz], "above-home")
 
-            self.get_logger().info("[8/8] → home")
+            if self.release_at_above_home:
+                self.get_logger().info("[8/9] gripper open at above-home")
+                self._open_gripper()
+                time.sleep(self.wait_after_release)
+
+            self.get_logger().info("[9/9] → home")
             self._joint_move_home()
             self.get_logger().info(f"DONE in {time.perf_counter() - t_start:.2f}s")
         except Exception as e:
             self.get_logger().error(f"FAILED: {e}")
         finally:
             self.is_executing = False
+            self._set_state("idle")
 
     # ===== dynamic mode =====
-
-    def _start_dynamic_sequence(self):
-        if self.one_shot_done:
-            return
-        self.one_shot_done = True
-        threading.Thread(target=self._execute_dynamic_sequence, daemon=True).start()
 
     def _execute_dynamic_sequence(self):
         self.get_logger().info("DYNAMIC GRASP — waiting for object center...")
         self._wait_for_jaka_ready()
 
-        self._object_center_event.clear()
-        if not self._object_center_event.wait(timeout=self.fresh_pose_timeout):
-            self.get_logger().error("Timeout waiting for object center")
-            return
-        if not rclpy.ok():
-            return
-
         center = self._object_center_pose
-        try:
-            self.destroy_subscription(self.sub_object_center)
-        except Exception:
-            pass
+        if center is None:
+            self._object_center_event.clear()
+            if not self._object_center_event.wait(timeout=self.fresh_pose_timeout):
+                self.get_logger().error("Timeout waiting for object center")
+                return
+            if not rclpy.ok():
+                return
+            center = self._object_center_pose
+        if center is None:
+            self.get_logger().error("No object center available")
+            return
 
         cx = center.pose.position.x
         cy = center.pose.position.y
+        cz = center.pose.position.z
 
         hx, hy, hz = self.home_pos[0], self.home_pos[1], self.home_pos[2]
-        hrx, hry, hrz = self.home_pos[3], self.home_pos[4], self.home_pos[5]
+        motion_rx, motion_ry, motion_rz = self._get_motion_rpy()
 
         dist_to_obj = hy - cy
         pre_x = cx
         pre_z = hz + self.pregrasp_z_offset
+
+        # Restore the original safer lateral pre-grasp geometry.
         if dist_to_obj > self.pregrasp_settle_dist:
             pre_y = cy + self.pregrasp_settle_dist
             pregrasp_mode_label = "APPROACH"
@@ -266,12 +379,14 @@ class GripperExecNode(Node):
             pregrasp_mode_label = "ALIGN-ONLY"
 
         self.get_logger().info(
-            f"  Object center: x={cx:.3f}, y={cy:.3f} | dist_to_obj={dist_to_obj:.3f} m"
+            f"  Object center: x={cx:.3f}, y={cy:.3f}, z={cz:.3f} | "
+            f"dist_to_obj={dist_to_obj:.3f}"
         )
         self.get_logger().info(
             f"  Pre-grasp [{pregrasp_mode_label}]: x={pre_x:.3f}, y={pre_y:.3f}, z={pre_z:.3f}"
         )
 
+        self._set_state("executing-dynamic")
         self.is_executing = True
         t_start = time.perf_counter()
         try:
@@ -283,7 +398,18 @@ class GripperExecNode(Node):
             time.sleep(self.wait_grip)
 
             self.get_logger().info("[DYN 3/10] → pre-grasp (IK)")
-            self._move_via_ik([pre_x, pre_y, pre_z, hrx, hry, hrz], "dynamic-pre-grasp")
+            if self.use_joint_move_for_grasp_path:
+                self._move_tip_target_via_ik(
+                    pre_x, pre_y, pre_z, motion_rx, motion_ry, motion_rz, "dynamic-pre-grasp"
+                )
+            elif self.use_linear_pregrasp:
+                self._linear_move_tip_target(
+                    pre_x, pre_y, pre_z, motion_rx, motion_ry, motion_rz, "dynamic-pre-grasp"
+                )
+            else:
+                self._move_tip_target_via_ik(
+                    pre_x, pre_y, pre_z, motion_rx, motion_ry, motion_rz, "dynamic-pre-grasp"
+                )
 
             if self.stop_after_pregrasp:
                 self.get_logger().warn("TEST MODE: stop after pre-grasp")
@@ -306,11 +432,6 @@ class GripperExecNode(Node):
                 return
 
             fresh = self._fresh_grasp_pose
-            try:
-                self.destroy_subscription(self.sub_grasp)
-            except Exception:
-                pass
-
             gx = fresh.pose.position.x
             gy = fresh.pose.position.y
             gz = fresh.pose.position.z
@@ -319,7 +440,10 @@ class GripperExecNode(Node):
             )
 
             self.get_logger().info("[DYN 6/10] → grasp (linear)")
-            self._linear_move([gx, gy, gz, hrx, hry, hrz], "grasp")
+            if self.use_joint_move_for_grasp_path:
+                self._move_tip_target_via_ik(gx, gy, gz, motion_rx, motion_ry, motion_rz, "grasp")
+            else:
+                self._linear_move_tip_target(gx, gy, gz, motion_rx, motion_ry, motion_rz, "grasp")
 
             self.get_logger().info("[DYN 7/10] gripper close")
             self._close_gripper()
@@ -327,21 +451,30 @@ class GripperExecNode(Node):
 
             lift_z = gz + self.lift_height
             self.get_logger().info("[DYN 8/10] → lift (linear)")
-            self._linear_move([gx, gy, lift_z, hrx, hry, hrz], "lift")
+            if self.use_joint_move_for_grasp_path:
+                self._move_tip_target_via_ik(gx, gy, lift_z, motion_rx, motion_ry, motion_rz, "lift")
+            else:
+                self._linear_move_tip_target(gx, gy, lift_z, motion_rx, motion_ry, motion_rz, "lift")
 
             above_z = hz + self.above_home_height
             self.get_logger().info("[DYN 9/10] → above home (IK)")
-            self._move_via_ik([hx, hy, above_z, hrx, hry, hrz], "above-home")
+            self._move_via_ik([hx, hy, above_z, motion_rx, motion_ry, motion_rz], "above-home")
 
-            self.get_logger().info("[DYN 9/10] → home")
+            if self.release_at_above_home:
+                self.get_logger().info("[DYN 10/11] gripper open at above-home")
+                self._open_gripper()
+                time.sleep(self.wait_after_release)
+
+            self.get_logger().info("[DYN 11/11] → home")
             self._joint_move_home()
 
-            self.get_logger().info(f"[DYN 10/10] DONE in {time.perf_counter() - t_start:.2f}s")
+            self.get_logger().info(f"[DYN DONE] in {time.perf_counter() - t_start:.2f}s")
         except Exception as e:
             self.get_logger().error(f"DYNAMIC FAILED: {e}")
         finally:
             self.is_executing = False
             self._accept_fresh_after_ns = 0
+            self._set_state("idle")
 
     # ===== IK + joint_move (safe for large moves) =====
 
@@ -385,15 +518,20 @@ class GripperExecNode(Node):
             return
         self._joint_move_to(joints, label)
 
-    def _joint_move_to(self, joints, label="target"):
+    def _move_tip_target_via_ik(self, tx, ty, tz, rx, ry, rz, label="target"):
+        tcp_x, tcp_y, tcp_z = self._tip_target_to_tcp_xyz(tx, ty, tz, rx, ry, rz)
+        self._publish_debug_target_pair(label, tx, ty, tz, tcp_x, tcp_y, tcp_z, rx, ry, rz)
+        self._move_via_ik([tcp_x, tcp_y, tcp_z, rx, ry, rz], label)
+
+    def _joint_move_to(self, joints, label="target", velocity=None, acceleration=None):
         if self._joint_move_client is None:
             raise RuntimeError("joint_move not available")
         request = self._JakaMove.Request()
         request.pose = list(joints)
         request.has_ref = False
         request.ref_joint = [0.0]
-        request.mvvelo = self.joint_vel
-        request.mvacc = self.joint_acc
+        request.mvvelo = self.joint_vel if velocity is None else float(velocity)
+        request.mvacc = self.joint_acc if acceleration is None else float(acceleration)
         request.mvtime = 0.0
         request.mvradii = 0.0
         request.coord_mode = 0
@@ -431,7 +569,12 @@ class GripperExecNode(Node):
         if self.dry_run:
             self.get_logger().info("  [DRY RUN] skipped (joint_move home)")
             return
-        self._joint_move_to(self.home_joints, "home")
+        self._joint_move_to(
+            self.home_joints,
+            "home",
+            velocity=self.home_joint_vel,
+            acceleration=self.home_joint_acc,
+        )
 
     # ===== linear_move (short precise moves only) =====
 
@@ -442,7 +585,7 @@ class GripperExecNode(Node):
         x_mm = pose6_m[0] * 1000.0
         y_mm = pose6_m[1] * 1000.0
         z_mm = pose6_m[2] * 1000.0
-        rx, ry, rz = pose6_m[3], pose6_m[4], pose6_m[5]
+        rx, ry, rz = self._rpy_to_angle_axis(pose6_m[3], pose6_m[4], pose6_m[5])
 
         request = self._JakaMove.Request()
         request.pose = [x_mm, y_mm, z_mm, rx, ry, rz]
@@ -485,6 +628,11 @@ class GripperExecNode(Node):
         if self.settle_time > 0:
             time.sleep(self.settle_time)
 
+    def _linear_move_tip_target(self, tx, ty, tz, rx, ry, rz, label="target"):
+        tcp_x, tcp_y, tcp_z = self._tip_target_to_tcp_xyz(tx, ty, tz, rx, ry, rz)
+        self._publish_debug_target_pair(label, tx, ty, tz, tcp_x, tcp_y, tcp_z, rx, ry, rz)
+        self._linear_move([tcp_x, tcp_y, tcp_z, rx, ry, rz], label)
+
     # ===== readiness =====
 
     def _wait_for_jaka_ready(self):
@@ -497,6 +645,126 @@ class GripperExecNode(Node):
             self.get_logger().info(
                 f"TCP: x={self.current_tcp_mm[0]:.1f} y={self.current_tcp_mm[1]:.1f} z={self.current_tcp_mm[2]:.1f} mm"
             )
+
+    def _get_motion_rpy(self) -> tuple[float, float, float]:
+        """Optionally use live tool orientation; otherwise keep a fixed home/tool orientation."""
+        if self.use_live_tcp_orientation and self.current_tcp_mm is not None:
+            return (
+                math.radians(self.current_tcp_mm[3]),
+                math.radians(self.current_tcp_mm[4]),
+                math.radians(self.current_tcp_mm[5]),
+            )
+        return self.home_pos[3], self.home_pos[4], self.home_pos[5]
+
+    @staticmethod
+    def _rpy_to_angle_axis(rx: float, ry: float, rz: float) -> tuple[float, float, float]:
+        """Convert controller RPY pose to the angle-axis format expected by linear_move."""
+        crx, srx = math.cos(rx), math.sin(rx)
+        cry, sry = math.cos(ry), math.sin(ry)
+        crz, srz = math.cos(rz), math.sin(rz)
+
+        rot_x = np.array([[1.0, 0.0, 0.0], [0.0, crx, -srx], [0.0, srx, crx]], dtype=np.float64)
+        rot_y = np.array([[cry, 0.0, sry], [0.0, 1.0, 0.0], [-sry, 0.0, cry]], dtype=np.float64)
+        rot_z = np.array([[crz, -srz, 0.0], [srz, crz, 0.0], [0.0, 0.0, 1.0]], dtype=np.float64)
+        rot = rot_z @ rot_y @ rot_x
+
+        ang_axis, _ = cv2.Rodrigues(rot)
+        return float(ang_axis[0, 0]), float(ang_axis[1, 0]), float(ang_axis[2, 0])
+
+    @staticmethod
+    def _rpy_to_rot_matrix(rx: float, ry: float, rz: float) -> np.ndarray:
+        crx, srx = math.cos(rx), math.sin(rx)
+        cry, sry = math.cos(ry), math.sin(ry)
+        crz, srz = math.cos(rz), math.sin(rz)
+
+        rot_x = np.array([[1.0, 0.0, 0.0], [0.0, crx, -srx], [0.0, srx, crx]], dtype=np.float64)
+        rot_y = np.array([[cry, 0.0, sry], [0.0, 1.0, 0.0], [-sry, 0.0, cry]], dtype=np.float64)
+        rot_z = np.array([[crz, -srz, 0.0], [srz, crz, 0.0], [0.0, 0.0, 1.0]], dtype=np.float64)
+        return rot_z @ rot_y @ rot_x
+
+    def _tip_target_to_tcp_xyz(self, tx: float, ty: float, tz: float, rx: float, ry: float, rz: float) -> tuple[float, float, float]:
+        """
+        Perception publishes a target point for the working end of the gripper.
+        Motion services, however, act on the configured controller TCP.
+        Compensate the tool length in tool coordinates before issuing motion.
+        """
+        rot = self._rpy_to_rot_matrix(rx, ry, rz)
+        tcp_offset_base = rot @ self.tcp_to_tip_offset
+        tcp_target = np.array([tx, ty, tz], dtype=np.float64) - tcp_offset_base
+        return float(tcp_target[0]), float(tcp_target[1]), float(tcp_target[2])
+
+    def _publish_debug_target_pair(
+        self,
+        label: str,
+        tip_x: float,
+        tip_y: float,
+        tip_z: float,
+        tcp_x: float,
+        tcp_y: float,
+        tcp_z: float,
+        rx: float,
+        ry: float,
+        rz: float,
+    ) -> None:
+        if not self.debug_publish_targets:
+            return
+        self.pub_debug_target_tip.publish(self._xyz_to_pose(tip_x, tip_y, tip_z))
+        self.pub_debug_target_tcp.publish(self._xyz_to_pose(tcp_x, tcp_y, tcp_z))
+        label_l = label.lower()
+        if "pre-grasp" in label_l:
+            self._publish_marker("pregrasp_tip", 40, tip_x, tip_y, tip_z, 0.0, 1.0, 0.0)
+            self._publish_marker("pregrasp_tcp", 41, tcp_x, tcp_y, tcp_z, 0.0, 1.0, 1.0)
+        elif "grasp" in label_l:
+            self._publish_marker("grasp_tip", 50, tip_x, tip_y, tip_z, 1.0, 0.0, 0.0)
+            self._publish_marker("grasp_tcp", 51, tcp_x, tcp_y, tcp_z, 1.0, 0.0, 1.0)
+        self.get_logger().info(
+            f"[DBG:{label}] motion_rpy=({rx:.3f},{ry:.3f},{rz:.3f}) "
+            f"| tip_target=({tip_x:.3f},{tip_y:.3f},{tip_z:.3f}) "
+            f"| tcp_target=({tcp_x:.3f},{tcp_y:.3f},{tcp_z:.3f}) "
+            f"| tcp_to_tip=({self.tcp_to_tip_offset[0]:.3f},{self.tcp_to_tip_offset[1]:.3f},{self.tcp_to_tip_offset[2]:.3f})"
+        )
+
+    def _xyz_to_pose(self, x: float, y: float, z: float) -> PoseStamped:
+        msg = PoseStamped()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = self.debug_frame_id
+        msg.pose.position.x = float(x)
+        msg.pose.position.y = float(y)
+        msg.pose.position.z = float(z)
+        msg.pose.orientation.w = 1.0
+        return msg
+
+    def _publish_marker(
+        self,
+        ns: str,
+        marker_id: int,
+        x: float,
+        y: float,
+        z: float,
+        r: float,
+        g: float,
+        b: float,
+        scale: float = 0.03,
+    ) -> None:
+        marker = Marker()
+        marker.header.stamp = self.get_clock().now().to_msg()
+        marker.header.frame_id = self.debug_frame_id
+        marker.ns = ns
+        marker.id = marker_id
+        marker.type = Marker.SPHERE
+        marker.action = Marker.ADD
+        marker.pose.position.x = float(x)
+        marker.pose.position.y = float(y)
+        marker.pose.position.z = float(z)
+        marker.pose.orientation.w = 1.0
+        marker.scale.x = scale
+        marker.scale.y = scale
+        marker.scale.z = scale
+        marker.color.r = float(r)
+        marker.color.g = float(g)
+        marker.color.b = float(b)
+        marker.color.a = 0.9
+        self.pub_debug_markers.publish(marker)
 
     # ===== gripper =====
 
@@ -550,13 +818,161 @@ class GripperExecNode(Node):
             self.get_logger().error(f"reset_accumulator error: {e}")
             return False
 
+    # ===== service control =====
+
+    def _set_state(self, state: str) -> None:
+        self._state = state
+
+    def _status_message(self) -> str:
+        latest_grasp = "yes" if self.latest_grasp_pose is not None else "no"
+        object_center = "yes" if self._object_center_pose is not None else "no"
+        tcp_ready = "yes" if self.current_tcp_mm is not None else "no"
+        return (
+            f"state={self._state} busy={self.is_executing} pending={self._start_pending} "
+            f"mode={self.pregrasp_mode} tcp_ready={tcp_ready} latest_grasp={latest_grasp} "
+            f"object_center={object_center}"
+        )
+
+    def _auto_start_once(self):
+        if self._boot_timer is not None:
+            self._boot_timer.cancel()
+            self._boot_timer = None
+        ok, msg = self._queue_cycle("auto_execute")
+        if ok:
+            self.get_logger().info(f"Auto-start queued: {msg}")
+        else:
+            self.get_logger().warn(f"Auto-start skipped: {msg}")
+
+    def _queue_cycle(self, reason: str) -> tuple[bool, str]:
+        if self.is_executing:
+            return False, f"busy: {self._status_message()}"
+        if self._start_pending:
+            return False, f"already pending: {self._status_message()}"
+        self._start_pending = True
+        self._set_state("pending")
+        threading.Thread(target=self._run_requested_cycle, args=(reason, False), daemon=True).start()
+        return True, f"queued ({reason})"
+
+    def _run_requested_cycle(self, reason: str, dry_run_once: bool) -> None:
+        self.get_logger().info(f"Grasp cycle requested: {reason}")
+        self._start_pending = False
+        previous_dry_run = self.dry_run
+        if dry_run_once:
+            self.dry_run = True
+        try:
+            if self.pregrasp_mode == "dynamic":
+                self._execute_dynamic_sequence()
+            else:
+                self.execute_grasp_sequence()
+        except Exception as e:
+            self._set_state("error")
+            self.get_logger().error(f"Cycle runner failed: {e}")
+        finally:
+            self.dry_run = previous_dry_run
+            if not self.is_executing and self._state != "error":
+                self._set_state("idle")
+
+    def _run_simple_action(self, label: str, fn) -> None:
+        if self.is_executing or self._start_pending:
+            self.get_logger().warn(f"{label} rejected: {self._status_message()}")
+            return
+        self._set_state(label)
+        try:
+            fn()
+        except Exception as e:
+            self._set_state("error")
+            self.get_logger().error(f"{label} failed: {e}")
+        else:
+            self._set_state("idle")
+
+    def _srv_start(self, request, response):
+        ok, msg = self._queue_cycle("service-start")
+        response.success = ok
+        response.message = msg
+        return response
+
+    def _srv_start_dry_run(self, request, response):
+        if self.is_executing:
+            response.success = False
+            response.message = f"busy: {self._status_message()}"
+            return response
+        if self._start_pending:
+            response.success = False
+            response.message = f"already pending: {self._status_message()}"
+            return response
+        self._start_pending = True
+        self._set_state("pending-dry-run")
+        threading.Thread(
+            target=self._run_requested_cycle,
+            args=("service-start-dry-run", True),
+            daemon=True,
+        ).start()
+        response.success = True
+        response.message = "queued (service-start-dry-run)"
+        return response
+
+    def _srv_go_home(self, request, response):
+        if self.is_executing or self._start_pending:
+            response.success = False
+            response.message = f"busy: {self._status_message()}"
+            return response
+        threading.Thread(
+            target=self._run_simple_action, args=("go-home", self._joint_move_home), daemon=True
+        ).start()
+        response.success = True
+        response.message = "go_home queued"
+        return response
+
+    def _srv_open_gripper(self, request, response):
+        if self.is_executing or self._start_pending:
+            response.success = False
+            response.message = f"busy: {self._status_message()}"
+            return response
+        threading.Thread(
+            target=self._run_simple_action, args=("open-gripper", self._open_gripper), daemon=True
+        ).start()
+        response.success = True
+        response.message = "open_gripper queued"
+        return response
+
+    def _srv_close_gripper(self, request, response):
+        if self.is_executing or self._start_pending:
+            response.success = False
+            response.message = f"busy: {self._status_message()}"
+            return response
+        threading.Thread(
+            target=self._run_simple_action, args=("close-gripper", self._close_gripper), daemon=True
+        ).start()
+        response.success = True
+        response.message = "close_gripper queued"
+        return response
+
+    def _srv_reset(self, request, response):
+        if self.is_executing:
+            response.success = False
+            response.message = f"cannot reset while busy: {self._status_message()}"
+            return response
+        self._start_pending = False
+        self._accept_fresh_after_ns = 0
+        self._fresh_grasp_pose = None
+        self._fresh_grasp_event.clear()
+        self._object_center_pose = None
+        self._object_center_event.clear()
+        self._set_state("idle")
+        response.success = True
+        response.message = "reset local grasp state"
+        return response
+
+    def _srv_status(self, request, response):
+        response.success = True
+        response.message = self._status_message()
+        return response
+
 
 
 def main(args=None):
     rclpy.init(args=args)
     node = GripperExecNode()
-    if node.pregrasp_mode == "dynamic":
-        node._start_dynamic_sequence()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

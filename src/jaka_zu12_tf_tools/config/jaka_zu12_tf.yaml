@@ -12,7 +12,7 @@ camera_frame: camera_link
 # Y_link6 смотрит вниз, Z_link6 смотрит вперёд (вдоль гриппера)
 # camera_xyz: [X_link6, Y_link6, Z_link6]
 # вбок=0, вниз=-0.07 (камера выше гриппера = против Y_link6), вперёд=+0.004
-camera_xyz: [-0.1215, 0.3026, 0.4006]
+camera_xyz: [0.0, -0.07, 0.004]
 camera_rpy: [1.5708, -1.5708, 0.785]
 legacy_tcp_frame: jaka_tcp
 

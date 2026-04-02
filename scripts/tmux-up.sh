@@ -9,6 +9,7 @@ if tmux has-session -t "$SESSION" 2>/dev/null; then
 fi
 
 tmux new-session -d -s "$SESSION" -n shell  "bash -lc 'cd ${ROOT}; bash'"
+tmux new-window  -t "$SESSION" -n menu    "bash -lc 'cd ${ROOT}; bash ./scripts/grasp_menu.sh; bash'"
 tmux new-window  -t "$SESSION" -n robot   "bash -lc 'cd ${ROOT}; ./scripts/launch_robot.sh; bash'"
 tmux new-window  -t "$SESSION" -n tf      "bash -lc 'cd ${ROOT}; ./scripts/launch_tf.sh; bash'"
 tmux new-window  -t "$SESSION" -n gripper "bash -lc 'cd ${ROOT}; ./scripts/launch_gripper.sh; bash'"

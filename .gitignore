@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+
+build/
+install/
+log/
+.venv/
+venv/
+
+debug_logs/
+debug_images/
+
+Pasted image*.png
+camera_link:
+
+src/**/build/
+src/**/install/
+src/**/log/
+src/**/venv/

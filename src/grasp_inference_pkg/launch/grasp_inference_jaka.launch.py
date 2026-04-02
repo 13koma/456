@@ -20,8 +20,8 @@ def generate_launch_description():
     plane_max = [0.038, 0.139]
     grasp_depth_offset = 0.03
 
-    # Home position in METERS + radians (from FK of your joint home)
-    # FK returned (mm): [-130.355, -547.971, 93.684, -1.552, -0.787, 3.128]
+    # Home position
+    # FK return: [-130.355, -547.971, 93.684, -1.552, -0.787, 3.128]
     jaka_home_position = [-0.13036, -0.54797, 0.09368, -1.5521, -0.7865, 3.1284]
 
     return LaunchDescription([
@@ -37,6 +37,7 @@ def generate_launch_description():
                 "pcd_topic": "/camera/camera/depth/color/points",
                 "target_frame": heightmap_target_frame,
                 "pcd_mask_from_topic": "/camera/camera/color/image_raw",
+                "fallback_optical_to_link": False,
                 "hm_size": hm_size,
                 "hm_resolution": hm_resolution,
                 "plane_min": plane_min,
@@ -76,6 +77,10 @@ def generate_launch_description():
                 "target_frame": inference_target_frame,
                 "transform_timeout": 1.0,
                 "apply_model_to_camera_transform": True,
+                "apply_model_to_camera_rotation": False,
+                "camera_target_offset_m": [0.0, -0.007, 0.0],
+                "grasp_keep_top_fraction": 0.20,
+                "grasp_depth_bias_m": -0.015,
             }]
         ),
 
@@ -92,24 +97,35 @@ def generate_launch_description():
                 "accumulator_reset_service": "/heightmap_node/reset_accumulator",
                 "tcp_pose_topic": "/jaka_driver/tool_position",
                 "linear_move_service": "/jaka_driver/linear_move",
-                "move_velocity_mm_s": 20.0,
-                "move_acceleration_mm_s2": 20.0,
+                "move_velocity_mm_s": 70.0,
+                "move_acceleration_mm_s2": 70.0,
                 "gripper_open_service": "/dh_gripper_node/open",
                 "gripper_close_service": "/dh_gripper_node/close",
+                "auto_execute": False,
                 "pregrasp_settle_distance": 0.30,
                 "pregrasp_z_offset": 0.04,
                 "fresh_pose_timeout": 30.0,
                 "wait_after_grip": 1.5,
-                "lift_height": 0.05,
-                "above_home_height": 0.15,
+                "lift_height": 0.10,
+                "above_home_height": 0.25,
+                "tcp_to_tip_offset_m": [0.0, 0.0, 0.15],
                 "settle_time": 0.3,
+                "debug_publish_targets": True,
+                "debug_frame_id": "base_link",
+                "use_live_tcp_orientation": False,
+                "use_linear_pregrasp": False,
+                "use_joint_move_for_grasp_path": True,
+                "release_at_above_home": True,
+                "wait_after_release": 1.0,
                 "dry_run": False,
                 "home_position": jaka_home_position,
                 "home_joints": [1.5698206424713135, 1.8715859651565552, 2.3616514205932617, 2.0367627143859863, 1.569820761680603, 2.3550024032592773],
                 "joint_move_service": "/jaka_driver/joint_move",
                 "ik_service": "/jaka_driver/get_ik",
-                "joint_velocity": 0.3,
-                "joint_acceleration": 0.3,
+                "joint_velocity": 1.0,
+                "joint_acceleration": 1.0,
+                "home_joint_velocity": 0.8,
+                "home_joint_acceleration": 0.8,
             }]
         ),
     ])

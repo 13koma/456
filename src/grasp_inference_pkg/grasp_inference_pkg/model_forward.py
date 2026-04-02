@@ -85,6 +85,10 @@ class GraspInferenceNode(Node):
         self.declare_parameter("transform_timeout", 1.0)
         # Преобразование из координат модели (raw) в camera_link: x_raw=z_cam, y_raw=-x_cam, z_raw=-y_cam
         self.declare_parameter("apply_model_to_camera_transform", True)
+        self.declare_parameter("apply_model_to_camera_rotation", True)
+        self.declare_parameter("camera_target_offset_m", [0.0, 0.0, 0.0])
+        self.declare_parameter("grasp_keep_top_fraction", 1.0)
+        self.declare_parameter("grasp_depth_bias_m", 0.0)
 
         # ---- Read parameters ----
         color_topic = self.get_parameter("color_topic").value
@@ -107,6 +111,15 @@ class GraspInferenceNode(Node):
         self.target_frame = self.get_parameter("target_frame").value
         self.transform_timeout = float(self.get_parameter("transform_timeout").value)
         self.apply_model_to_camera = bool(self.get_parameter("apply_model_to_camera_transform").value)
+        self.apply_model_to_camera_rotation = bool(
+            self.get_parameter("apply_model_to_camera_rotation").value
+        )
+        self.camera_target_offset = np.array(
+            [float(v) for v in self.get_parameter("camera_target_offset_m").value],
+            dtype=np.float32,
+        )
+        self.grasp_keep_top_fraction = float(self.get_parameter("grasp_keep_top_fraction").value)
+        self.grasp_depth_bias_m = float(self.get_parameter("grasp_depth_bias_m").value)
 
         # Матрица преобразования: координаты модели (raw) -> camera_link
         # x_raw = z_cam, y_raw = -x_cam, z_raw = -y_cam  =>  x_cam = -y_raw, y_cam = -z_raw, z_cam = x_raw
@@ -161,6 +174,11 @@ class GraspInferenceNode(Node):
         self.pub_marker_camera = self.create_publisher(Marker, "~/grasp_marker_camera", 10)    # синий в camera_link
         self.pub_marker_base = self.create_publisher(Marker, "~/grasp_marker", 10)           # красный в base
         self.pub_object_center_base = self.create_publisher(PoseStamped, "~/object_center_base", 10)
+        self.pub_object_center_camera = self.create_publisher(PoseStamped, "~/object_center_camera", 10)
+        self.pub_grasp_pose_raw = self.create_publisher(PoseStamped, "~/debug/grasp_pose_raw", 10)
+        self.pub_object_center_raw = self.create_publisher(PoseStamped, "~/debug/object_center_raw", 10)
+        self.pub_marker_center_camera = self.create_publisher(Marker, "~/center_marker_camera", 10)
+        self.pub_marker_center_base = self.create_publisher(Marker, "~/center_marker_base", 10)
 
         # ---- Subscribers (sync 3 topics) ----
         self.sub_color = message_filters.Subscriber(self, Image, color_topic)
@@ -186,6 +204,16 @@ class GraspInferenceNode(Node):
         # self.get_logger().info(f"stabilization: pose_ema_alpha={self.pose_ema_alpha}")  # отключено для дебага
         self.get_logger().info(
             f"target_frame={self.target_frame} | apply_model_to_camera={self.apply_model_to_camera}"
+        )
+        self.get_logger().info(
+            f"apply_model_to_camera_rotation={self.apply_model_to_camera_rotation}"
+        )
+        self.get_logger().info(
+            f"camera_target_offset_m={self.camera_target_offset.tolist()}"
+        )
+        self.get_logger().info(
+            f"grasp_keep_top_fraction={self.grasp_keep_top_fraction} | "
+            f"grasp_depth_bias_m={self.grasp_depth_bias_m}"
         )
 
     def _preprocess(self, color_hm_rgb8: np.ndarray, height_hm: np.ndarray) -> torch.Tensor:
@@ -216,9 +244,10 @@ class GraspInferenceNode(Node):
             return
 
 
-        # trick_hhm = height_hm / 2 + 0.19  # disabled for JAKA 
+        # Keep the original model input scaling used in the source pipeline.
+        trick_hhm = height_hm / 2 + 0.19
 
-        x = self._preprocess(color_hm, height_hm)
+        x = self._preprocess(color_hm, trick_hhm)
 
         # Unet outputs logits -> sigmoid -> q_map in [0,1]
         logits = self.model(x)            # (1,1,H,W)
@@ -242,30 +271,28 @@ class GraspInferenceNode(Node):
             self.get_logger().warn("[MASK] valid is EMPTY — skipping")
             return
 
-        # ----- Основная маска объекта: YOLO mask, спроецированная в heightmap -----
-        yolo_mask = (mask_hm > 0)
+        # Restore original depth-based object extraction for Q selection.
+        max_h = float(np.max(height_hm[valid]))
+        depth_threshold = max_h - self.object_depth_margin
+        obj_by_depth = valid & (height_hm < depth_threshold)
 
-        # Небольшая чистка шума
-        if yolo_mask.any():
-            kernel = np.ones((3, 3), np.uint8)
-            yolo_mask = cv2.morphologyEx(
-                yolo_mask.astype(np.uint8) * 255,
-                cv2.MORPH_OPEN,
-                kernel
-            ) > 0
-
-        keep = valid & yolo_mask
-
-        # fallback только если маска пустая в valid-зоне
-        if not keep.any():
-            self.get_logger().warn("[MASK] YOLO mask is EMPTY in valid area — fallback to valid depth area")
-            keep = valid
-
+        obj_depth_count = int(np.count_nonzero(obj_by_depth))
         self.get_logger().info(
             f"[MASK] valid={int(np.count_nonzero(valid))} | "
-            f"yolo={int(np.count_nonzero(yolo_mask))} | "
-            f"keep={int(np.count_nonzero(keep))}"
+            f"obj_by_depth={obj_depth_count} (max_h={max_h:.4f}, "
+            f"threshold={depth_threshold:.4f}, margin={self.object_depth_margin})"
         )
+
+        keep = obj_by_depth if obj_by_depth.any() else valid
+
+        if keep.any() and self.grasp_keep_top_fraction < 1.0:
+            keep_rows, _ = np.where(keep)
+            if keep_rows.size > 0:
+                row_min = int(np.min(keep_rows))
+                row_max = int(np.max(keep_rows))
+                row_span = max(1, row_max - row_min + 1)
+                cutoff = row_min + int(row_span * self.grasp_keep_top_fraction)
+                keep = keep & (np.arange(self.hm_size)[:, None] >= cutoff)
 
         if not keep.any():
             self.get_logger().warn("[MASK] keep is EMPTY — skipping")
@@ -278,22 +305,35 @@ class GraspInferenceNode(Node):
         col = flat_idx % self.hm_size
 
         # ===== POSE RECONSTRUCTION =====
-        x_raw = float(height_hm[row, col] + self.grasp_depth_offset)
+        x_raw = float(height_hm[row, col] + self.grasp_depth_offset + self.grasp_depth_bias_m)
         y_raw = float(self.plane_min[0] + (self.hm_size - 1 - col) * self.hm_resolution)
         z_raw = float(self.plane_min[1] + (self.hm_size - 1 - row) * self.hm_resolution)
 
-        if self.apply_model_to_camera:
+        if self.apply_model_to_camera and self.apply_model_to_camera_rotation:
             pos_vec = np.array([x_raw, y_raw, z_raw], dtype=np.float32)
             pos_camera = self.model_to_camera_rotation @ pos_vec
             x, y, z = float(pos_camera[0]), float(pos_camera[1]), float(pos_camera[2])
         else:
             x, y, z = x_raw, y_raw, z_raw
 
+        x += float(self.camera_target_offset[0])
+        y += float(self.camera_target_offset[1])
+        z += float(self.camera_target_offset[2])
+
         self.get_logger().info(
             f"RAW=({x_raw:.3f},{y_raw:.3f},{z_raw:.3f}) "
             f"CAM=({x:.3f},{y:.3f},{z:.3f}) "
             f"pixel=({row},{col})"
         )
+
+        pose_raw = PoseStamped()
+        pose_raw.header.stamp = color_msg.header.stamp
+        pose_raw.header.frame_id = "model_raw"
+        pose_raw.pose.position.x = x_raw
+        pose_raw.pose.position.y = y_raw
+        pose_raw.pose.position.z = z_raw
+        pose_raw.pose.orientation.w = 1.0
+        self.pub_grasp_pose_raw.publish(pose_raw)
 
         pose_camera = PoseStamped()
         pose_camera.header.stamp = color_msg.header.stamp
@@ -303,6 +343,16 @@ class GraspInferenceNode(Node):
         pose_camera.pose.position.z = z
         pose_camera.pose.orientation.w = 1.0
         self.pub_grasp_pose_camera.publish(pose_camera)
+        self.pub_marker_camera.publish(
+            self._make_marker(
+                frame_id=pose_camera.header.frame_id,
+                stamp=pose_camera.header.stamp,
+                ns="grasp_camera",
+                marker_id=1,
+                xyz=(x, y, z),
+                rgb=(0.1, 0.4, 1.0),
+            )
+        )
 
         # ===== TF: camera_link -> base =====
         try:
@@ -317,7 +367,7 @@ class GraspInferenceNode(Node):
 
             grasp_corr_x = 0.0
             grasp_corr_y = 0.0
-            grasp_corr_z = -0.05
+            grasp_corr_z = 0.0
 
             pose_gripper = PoseStamped()
             pose_gripper.header = pose_base.header
@@ -329,6 +379,20 @@ class GraspInferenceNode(Node):
             pose_gripper.pose.orientation.z = pose_base.pose.orientation.z
             pose_gripper.pose.orientation.w = pose_base.pose.orientation.w
             self.pub_grasp_pose_gripper.publish(pose_gripper)
+            self.pub_marker_base.publish(
+                self._make_marker(
+                    frame_id=pose_base.header.frame_id,
+                    stamp=pose_base.header.stamp,
+                    ns="grasp_base",
+                    marker_id=2,
+                    xyz=(
+                        pose_base.pose.position.x,
+                        pose_base.pose.position.y,
+                        pose_base.pose.position.z,
+                    ),
+                    rgb=(1.0, 0.0, 0.0),
+                )
+            )
 
             self.get_logger().info(
                 f"[TF] tcp:     x={pose_base.pose.position.x:.3f} "
@@ -339,24 +403,37 @@ class GraspInferenceNode(Node):
         except Exception as e:
             self.get_logger().error(f"TF transform failed: {e}")
 
-        # ===== OBJECT CENTER (centroid of YOLO-masked object on heightmap) =====
-        obj_mask_for_center = keep
+        # ===== OBJECT CENTER (restore original depth-filtered centroid logic) =====
+        obj_mask_for_center = obj_by_depth if obj_by_depth.any() else keep
         obj_rows, obj_cols = np.where(obj_mask_for_center)
 
-        center_row = int(np.round(np.mean(obj_rows)))
-        center_col = int(np.round(np.mean(obj_cols)))
-        center_depth = float(np.median(height_hm[obj_mask_for_center]))
+        center_row = int(np.mean(obj_rows))
+        center_col = int(np.mean(obj_cols))
+        center_depth = float(np.mean(height_hm[obj_mask_for_center]))
 
-        cx_raw = float(center_depth + self.grasp_depth_offset)
+        cx_raw = float(center_depth + self.grasp_depth_offset + self.grasp_depth_bias_m)
         cy_raw = float(self.plane_min[0] + (self.hm_size - 1 - center_col) * self.hm_resolution)
         cz_raw = float(self.plane_min[1] + (self.hm_size - 1 - center_row) * self.hm_resolution)
 
-        if self.apply_model_to_camera:
+        if self.apply_model_to_camera and self.apply_model_to_camera_rotation:
             cvec = np.array([cx_raw, cy_raw, cz_raw], dtype=np.float32)
             cvec_cam = self.model_to_camera_rotation @ cvec
             cx_cam, cy_cam, cz_cam = float(cvec_cam[0]), float(cvec_cam[1]), float(cvec_cam[2])
         else:
             cx_cam, cy_cam, cz_cam = cx_raw, cy_raw, cz_raw
+
+        cx_cam += float(self.camera_target_offset[0])
+        cy_cam += float(self.camera_target_offset[1])
+        cz_cam += float(self.camera_target_offset[2])
+
+        center_raw = PoseStamped()
+        center_raw.header.stamp = color_msg.header.stamp
+        center_raw.header.frame_id = "model_raw"
+        center_raw.pose.position.x = cx_raw
+        center_raw.pose.position.y = cy_raw
+        center_raw.pose.position.z = cz_raw
+        center_raw.pose.orientation.w = 1.0
+        self.pub_object_center_raw.publish(center_raw)
 
         try:
             center_camera = PoseStamped()
@@ -366,6 +443,17 @@ class GraspInferenceNode(Node):
             center_camera.pose.position.y = cy_cam
             center_camera.pose.position.z = cz_cam
             center_camera.pose.orientation.w = 1.0
+            self.pub_object_center_camera.publish(center_camera)
+            self.pub_marker_center_camera.publish(
+                self._make_marker(
+                    frame_id=center_camera.header.frame_id,
+                    stamp=center_camera.header.stamp,
+                    ns="center_camera",
+                    marker_id=3,
+                    xyz=(cx_cam, cy_cam, cz_cam),
+                    rgb=(1.0, 1.0, 0.0),
+                )
+            )
 
             tf_center = self.tf_buffer.lookup_transform(
                 self.target_frame,
@@ -375,24 +463,31 @@ class GraspInferenceNode(Node):
             )
             center_base = tf2_geometry_msgs.do_transform_pose_stamped(center_camera, tf_center)
 
-            pre_corr_x = 0.125
-            pre_corr_y = 0.14
-
-            center_corr = PoseStamped()
-            center_corr.header = center_base.header
-            center_corr.pose.position.x = center_base.pose.position.x + pre_corr_x
-            center_corr.pose.position.y = center_base.pose.position.y + pre_corr_y
-            center_corr.pose.position.z = center_base.pose.position.z
-            center_corr.pose.orientation = center_base.pose.orientation
-
-            self.pub_object_center_base.publish(center_corr)
+            self.pub_object_center_base.publish(center_base)
+            self.pub_marker_center_base.publish(
+                self._make_marker(
+                    frame_id=center_base.header.frame_id,
+                    stamp=center_base.header.stamp,
+                    ns="center_base",
+                    marker_id=4,
+                    xyz=(
+                        center_base.pose.position.x,
+                        center_base.pose.position.y,
+                        center_base.pose.position.z,
+                    ),
+                    rgb=(1.0, 1.0, 0.0),
+                )
+            )
 
             self.get_logger().info(
                 f"[CENTER] base: x={center_base.pose.position.x:.3f} "
-                f"y={center_base.pose.position.y:.3f} z={center_base.pose.position.z:.3f} | "
-                f"corr: x={center_corr.pose.position.x:.3f} "
-                f"y={center_corr.pose.position.y:.3f} z={center_corr.pose.position.z:.3f} "
+                f"y={center_base.pose.position.y:.3f} z={center_base.pose.position.z:.3f} "
                 f"pixel=({center_row},{center_col}) depth={center_depth:.4f}"
+            )
+            self.get_logger().info(
+                f"[CENTER DBG] RAW=({cx_raw:.3f},{cy_raw:.3f},{cz_raw:.3f}) "
+                f"CAM=({cx_cam:.3f},{cy_cam:.3f},{cz_cam:.3f}) "
+                f"BASE=({center_base.pose.position.x:.3f},{center_base.pose.position.y:.3f},{center_base.pose.position.z:.3f})"
             )
 
         except Exception as e:
@@ -418,6 +513,27 @@ class GraspInferenceNode(Node):
         q_msg.header.stamp = color_msg.header.stamp
         q_msg.header.frame_id = color_msg.header.frame_id
         self.pub_q_canvas.publish(q_msg)
+
+    def _make_marker(self, frame_id: str, stamp, ns: str, marker_id: int, xyz: tuple[float, float, float], rgb: tuple[float, float, float]) -> Marker:
+        marker = Marker()
+        marker.header.frame_id = frame_id
+        marker.header.stamp = stamp
+        marker.ns = ns
+        marker.id = marker_id
+        marker.type = Marker.SPHERE
+        marker.action = Marker.ADD
+        marker.pose.position.x = float(xyz[0])
+        marker.pose.position.y = float(xyz[1])
+        marker.pose.position.z = float(xyz[2])
+        marker.pose.orientation.w = 1.0
+        marker.scale.x = 0.03
+        marker.scale.y = 0.03
+        marker.scale.z = 0.03
+        marker.color.r = float(rgb[0])
+        marker.color.g = float(rgb[1])
+        marker.color.b = float(rgb[2])
+        marker.color.a = 0.9
+        return marker
 
 
 def main(args=None):
