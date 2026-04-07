@@ -41,3 +41,34 @@
 - Preserve the current single-object working path as fallback.
 - Avoid changing motion/execution while building the multi-object MVP.
 - First implementation target is the union-mask path in `grasp_node.py`.
+## 2026-04-03
+Goal:
+- start the YOLO multi-object MVP without touching the current grasp model
+
+Decision:
+- use the simplest path first:
+  - YOLO detects several objects
+  - choose one target instance
+  - pass only that instance mask into the heightmap path
+  - keep `model_forward.py` unchanged for now
+
+Test objects:
+- water bottle
+- corn can
+- small juice box
+
+What changed:
+- added single-object selection mode in `grasp_node.py`
+- added launch parameters:
+  - `seg_mask_mode`
+  - `seg_selection_rule`
+  - `seg_target_class`
+- active launch now uses:
+  - `seg_mask_mode = selected`
+  - `seg_selection_rule = highest_conf`
+  - `seg_target_class = ""`
+
+Expected result:
+- `~/debug/yolo_mask_on_image_raw` still shows the detected scene
+- `/heightmap_node/heightmap/mask` should contain only one selected object
+- `q_canvas` should be built from a cleaned single-object scene instead of a union mask

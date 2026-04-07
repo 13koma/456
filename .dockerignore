@@ -9,3 +9,8 @@ log
 venv
 .pytest_cache
 .cache
+debug_images
+debug_logs
+Pasted image*.png
+frames_*.gv
+frames_*.pdf

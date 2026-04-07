@@ -5,12 +5,15 @@ import numpy as np
 import torch
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import qos_profile_sensor_data, QoSProfile, DurabilityPolicy
 from rclpy.time import Time
 from rclpy.duration import Duration
 
+from geometry_msgs.msg import Point
 from sensor_msgs.msg import PointCloud2, PointField, Image, CameraInfo
+from std_msgs.msg import String
 from std_srvs.srv import Trigger
+from visualization_msgs.msg import Marker
 from cv_bridge import CvBridge
 import message_filters
 
@@ -46,6 +49,35 @@ def _mask_has_pixel_above_line(mask: np.ndarray, H: int, W: int, cutoff_row: int
         mask = cv2.resize(mask, (W, H), interpolation=cv2.INTER_NEAREST)
     top = min(cutoff_row, mask.shape[0])
     return bool(np.any(mask[:top, :] > 0))
+
+
+def _norm_class_name(name: str) -> str:
+    return (name or "").strip().lower()
+
+
+def _apply_mask_to_scene(
+    rgb: np.ndarray,
+    xyz: np.ndarray,
+    mask_u8: np.ndarray,
+    dilate_px: int = 0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Keep only selected-object pixels in the scene before heightmap projection."""
+    if mask_u8 is None:
+        return rgb, xyz
+    keep_mask = mask_u8
+    if dilate_px > 0:
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * dilate_px + 1, 2 * dilate_px + 1))
+        keep_mask = cv2.dilate(mask_u8, kernel, iterations=1)
+    keep = keep_mask > 0
+    if not np.any(keep):
+        return np.zeros_like(rgb), np.full_like(xyz, np.nan, dtype=np.float32)
+
+    rgb_out = rgb.copy()
+    rgb_out[~keep] = 0
+
+    xyz_out = xyz.copy()
+    xyz_out[~keep] = np.nan
+    return rgb_out, xyz_out
 
 
 def unpack_rgb_pcl_float(rgb_float: np.ndarray) -> np.ndarray:
@@ -215,6 +247,10 @@ class HeightmapNode(Node):
         self.declare_parameter("seg_iou", 0.7)
         self.declare_parameter("seg_force_cpu", False)
         self.declare_parameter("seg_mask_persist_frames", 5)
+        self.declare_parameter("seg_mask_mode", "union")
+        self.declare_parameter("seg_selection_rule", "highest_conf")
+        self.declare_parameter("seg_target_class", "")
+        self.declare_parameter("seg_selected_mask_dilate_px", 7)
 
         # ---- frame accumulation params ----
         self.declare_parameter("accumulate_frames", 10)
@@ -276,6 +312,10 @@ class HeightmapNode(Node):
         self.seg_imgsz = int(self.get_parameter("seg_imgsz").value)
         self.seg_conf = float(self.get_parameter("seg_conf").value)
         self.seg_iou = float(self.get_parameter("seg_iou").value)
+        self.seg_mask_mode = (self.get_parameter("seg_mask_mode").value or "union").strip().lower()
+        self.seg_selection_rule = (self.get_parameter("seg_selection_rule").value or "highest_conf").strip().lower()
+        self.seg_target_class = _norm_class_name(self.get_parameter("seg_target_class").value)
+        self.seg_selected_mask_dilate_px = max(0, int(self.get_parameter("seg_selected_mask_dilate_px").value))
         seg_force_cpu = bool(self.get_parameter("seg_force_cpu").value)
         self.seg_device = "cpu" if seg_force_cpu else ("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -345,6 +385,7 @@ class HeightmapNode(Node):
         self._last_valid_mask: np.ndarray | None = None
         self._mask_miss_count: int = 0
         self._last_yolo_classes_log: float = 0.0
+        self._last_yolo_selected_log: float = 0.0
 
         # ---- TF ----
         self.tf_buffer = tf2_ros.Buffer(cache_time=Duration(seconds=5.0))
@@ -368,6 +409,22 @@ class HeightmapNode(Node):
         self.pub_yolo_mask_on_image_raw = self.create_publisher(
             Image, "~/debug/yolo_mask_on_image_raw", 10
         )
+        self.pub_yolo_selected_mask = self.create_publisher(
+            Image, "~/debug/yolo_selected_mask", 10
+        )
+        self.pub_yolo_selection = self.create_publisher(
+            String, "~/debug/yolo_selection", 10
+        )
+        self.pub_yolo_candidates = self.create_publisher(
+            String, "~/debug/yolo_candidates", 10
+        )
+        latched_qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
+        self.pub_target_class = self.create_publisher(
+            String, "~/debug/target_class", latched_qos
+        )
+        self.pub_workspace_marker = self.create_publisher(
+            Marker, "~/debug/workspace_marker", latched_qos
+        )
 
         # ---- service: reset accumulator ----
         self.create_service(Trigger, "~/reset_accumulator", self._srv_reset_accumulator)
@@ -384,6 +441,12 @@ class HeightmapNode(Node):
             self.get_logger().info(
                 f"PCD mask from topic: {self._pcd_mask_from_topic} (как в ~/debug/yolo_mask_on_image_raw, ресайз под PCD)"
             )
+        self.create_subscription(
+            String,
+            "~/target_class",
+            self._on_target_class,
+            10,
+        )
 
         # ---- depth pipeline закомментирован ----
         # if self.enable_depth_pipeline and self.depth_topic and self.color_topic and self.camera_info_topic:
@@ -409,6 +472,11 @@ class HeightmapNode(Node):
             f"conf={self.seg_conf} iou={self.seg_iou} "
             f"mask_persist={self.seg_mask_persist} frames"
         )
+        self.get_logger().info(
+            f"Seg selection: mode={self.seg_mask_mode} rule={self.seg_selection_rule} "
+            f"target_class='{self.seg_target_class or '*'}' "
+            f"dilate_px={self.seg_selected_mask_dilate_px}"
+        )
         if self._yolo_class_names:
             self.get_logger().info(
                 f"YOLO классы ({len(self._yolo_class_names)}): {self._yolo_class_names}"
@@ -425,6 +493,8 @@ class HeightmapNode(Node):
             self.get_logger().info(
                 f"Маска из {self._pcd_mask_from_topic} → ~/debug/yolo_mask_on_image_raw → проекция в heightmap/mask"
             )
+        self.pub_target_class.publish(String(data=self.seg_target_class))
+        self._publish_workspace_marker()
 
     def _on_pcd_mask_source(self, msg: Image) -> None:
         """YOLO маска по image_raw (с обрезкой по линии). Сохраняем для проекции в build_heightmaps; публикуем overlay в ~/debug/yolo_mask_on_image_raw."""
@@ -438,12 +508,68 @@ class HeightmapNode(Node):
         self._last_mask_pcd_from_topic = mask_u8
         self._last_mask_pcd_from_topic_shape = (mask_u8.shape[0], mask_u8.shape[1])
 
+        mask_msg = self.bridge.cv2_to_imgmsg(mask_u8, encoding="mono8")
+        mask_msg.header = msg.header
+        self.pub_yolo_selected_mask.publish(mask_msg)
+
         masked = np.where(mask_u8[:, :, np.newaxis] > 0, img, 0).astype(np.uint8)
         if yolo_result is not None and yolo_result.masks is not None and hasattr(yolo_result, "boxes") and yolo_result.boxes is not None:
             masked = self._draw_class_masks_and_labels(masked, yolo_result, img.shape[1], img.shape[0])
         out = self.bridge.cv2_to_imgmsg(masked, encoding="rgb8")
         out.header = msg.header
         self.pub_yolo_mask_on_image_raw.publish(out)
+
+    def _on_target_class(self, msg: String) -> None:
+        new_value = _norm_class_name(msg.data)
+        if new_value == self.seg_target_class:
+            return
+        self.seg_target_class = new_value
+        self.pub_target_class.publish(String(data=self.seg_target_class))
+        self.get_logger().info(
+            f"Updated seg_target_class to '{self.seg_target_class or '*'}' via topic"
+        )
+
+    def _publish_workspace_marker(self) -> None:
+        marker = Marker()
+        marker.header.frame_id = self.target_frame or "camera_link"
+        marker.header.stamp = self.get_clock().now().to_msg()
+        marker.ns = "heightmap_workspace"
+        marker.id = 0
+        marker.type = Marker.LINE_STRIP
+        marker.action = Marker.ADD
+        marker.scale.x = 0.003
+        marker.color.r = 0.1
+        marker.color.g = 0.8
+        marker.color.b = 1.0
+        marker.color.a = 1.0
+
+        pmin = self.spec.plane_min
+        pmax = self.spec.plane_max
+        h_axis = self.spec.height_axis
+        u_axis, v_axis = self.spec.plane_axes
+        h_value = 0.0
+
+        corners_uv = [
+            (float(pmin[0]), float(pmin[1])),
+            (float(pmax[0]), float(pmin[1])),
+            (float(pmax[0]), float(pmax[1])),
+            (float(pmin[0]), float(pmax[1])),
+            (float(pmin[0]), float(pmin[1])),
+        ]
+
+        pts: list[Point] = []
+        for u, v in corners_uv:
+            coords = [0.0, 0.0, 0.0]
+            coords[h_axis] = h_value
+            coords[u_axis] = u
+            coords[v_axis] = v
+            p = Point()
+            p.x = float(coords[0])
+            p.y = float(coords[1])
+            p.z = float(coords[2])
+            pts.append(p)
+        marker.points = pts
+        self.pub_workspace_marker.publish(marker)
 
     def _draw_class_masks_and_labels(
         self, masked_rgb: np.ndarray, yolo_result, W: int, H: int
@@ -544,8 +670,11 @@ class HeightmapNode(Node):
                     if _mask_has_pixel_above_line(mask_np, H, W, cutoff_row):
                         kept.append(i)
                 valid_ix = kept
-            if valid_ix:
-                m = m[valid_ix]
+
+            self._publish_candidate_debug(r, valid_ix)
+            selected_ix = self._select_seg_instances(r, valid_ix)
+            if selected_ix:
+                m = m[selected_ix]
             else:
                 m = None
             if m is not None and len(m) > 0:
@@ -559,16 +688,17 @@ class HeightmapNode(Node):
                 self._last_valid_mask = union
                 self._mask_miss_count = 0
             # Лог классов только для image_raw (без bg*, только экземпляры выше линии), не чаще раза в 2 сек
-            if cache_key == "image_raw" and self._yolo_class_names and valid_ix:
+            if cache_key == "image_raw" and self._yolo_class_names and selected_ix:
                 try:
                     now = time.monotonic()
                     if now - self._last_yolo_classes_log >= 2.0:
                         self._last_yolo_classes_log = now
                         ids = r.boxes.cls.cpu().numpy().astype(int)
-                        names = [self._yolo_class_names.get(ids[i], str(ids[i])) for i in valid_ix]
+                        names = [self._yolo_class_names.get(ids[i], str(ids[i])) for i in selected_ix]
                         unames = sorted(set(n for n in names if not _is_bg_class(n)))
                         if unames:
-                            self.get_logger().info(f"YOLO детекция: классы {unames}")
+                            self.get_logger().info(f"YOLO детекция: выбранные классы {unames}")
+                    self._log_selected_instance(r, selected_ix)
                 except Exception:
                     pass
             return (union, r if cache_key == "image_raw" else None)
@@ -592,6 +722,91 @@ class HeightmapNode(Node):
                 f"Seg missed {self._mask_miss_count} frames in a row, mask cache expired"
             )
         return (np.zeros((H, W), dtype=np.uint8), None)
+
+    def _select_seg_instances(self, yolo_result, valid_ix: list[int]) -> list[int]:
+        """Return YOLO instance indices that should remain in the mask."""
+        if not valid_ix or yolo_result.boxes is None:
+            return []
+
+        if self.seg_mask_mode != "selected":
+            return valid_ix
+
+        ids = yolo_result.boxes.cls.cpu().numpy().astype(int)
+        confs = yolo_result.boxes.conf.cpu().numpy() if hasattr(yolo_result.boxes, "conf") else None
+        xyxy = yolo_result.boxes.xyxy.cpu().numpy() if hasattr(yolo_result.boxes, "xyxy") else None
+
+        filtered_ix = valid_ix
+        if self.seg_target_class:
+            filtered_ix = [
+                i for i in valid_ix
+                if _norm_class_name(self._yolo_class_names.get(ids[i], str(ids[i]))) == self.seg_target_class
+            ]
+            if not filtered_ix:
+                return []
+
+        rule = self.seg_selection_rule
+        if rule == "first":
+            return [filtered_ix[0]]
+        if xyxy is not None and rule in {"leftmost", "rightmost"}:
+            centers_x = {i: float((xyxy[i][0] + xyxy[i][2]) * 0.5) for i in filtered_ix}
+            key_fn = centers_x.get
+            chosen = min(filtered_ix, key=key_fn) if rule == "leftmost" else max(filtered_ix, key=key_fn)
+            return [chosen]
+        if confs is not None:
+            chosen = max(filtered_ix, key=lambda i: float(confs[i]))
+            return [chosen]
+        return [filtered_ix[0]]
+
+    def _publish_candidate_debug(self, yolo_result, valid_ix: list[int]) -> None:
+        if not valid_ix or yolo_result.boxes is None:
+            self.pub_yolo_candidates.publish(String(data="[]"))
+            return
+
+        boxes = yolo_result.boxes
+        ids = boxes.cls.cpu().numpy().astype(int) if hasattr(boxes, "cls") else None
+        confs = boxes.conf.cpu().numpy() if hasattr(boxes, "conf") else None
+
+        parts: list[str] = []
+        for i in valid_ix:
+            class_name = str(i)
+            if ids is not None:
+                class_id = int(ids[i])
+                class_name = self._yolo_class_names.get(class_id, str(class_id))
+            conf_txt = "n/a" if confs is None else f"{float(confs[i]):.3f}"
+            parts.append(f"{class_name}:{conf_txt}")
+        self.pub_yolo_candidates.publish(String(data="[" + ", ".join(parts) + "]"))
+
+    def _log_selected_instance(self, yolo_result, selected_ix: list[int]) -> None:
+        if not selected_ix:
+            return
+        now = time.monotonic()
+        if now - self._last_yolo_selected_log < 1.0:
+            return
+        self._last_yolo_selected_log = now
+
+        idx = selected_ix[0]
+        boxes = yolo_result.boxes
+        ids = boxes.cls.cpu().numpy().astype(int) if hasattr(boxes, "cls") else None
+        confs = boxes.conf.cpu().numpy() if hasattr(boxes, "conf") else None
+        xyxy = boxes.xyxy.cpu().numpy() if hasattr(boxes, "xyxy") else None
+
+        class_name = "unknown"
+        if ids is not None:
+            class_id = int(ids[idx])
+            class_name = self._yolo_class_names.get(class_id, str(class_id))
+
+        conf_txt = "n/a" if confs is None else f"{float(confs[idx]):.3f}"
+        bbox_txt = ""
+        if xyxy is not None:
+            x1, y1, x2, y2 = [int(v) for v in xyxy[idx]]
+            bbox_txt = f" bbox=({x1},{y1})-({x2},{y2})"
+
+        msg = (
+            f"class={class_name} conf={conf_txt} "
+            f"rule={self.seg_selection_rule} target_class='{self.seg_target_class or '*'}'{bbox_txt}"
+        )
+        self.pub_yolo_selection.publish(String(data=msg))
+        self.get_logger().info(f"YOLO selected: {msg}")
 
     def _on_depth_color_info(self, depth_msg: Image, color_msg: Image, info_msg: CameraInfo) -> None:
         """Build heightmaps from depth + color + camera_info. PC from unproject; mask = YOLO on image_raw (synced), projected via our xyz."""
@@ -677,7 +892,16 @@ class HeightmapNode(Node):
                 mask_u8 = cv2.resize(mask_u8, (W, H), interpolation=cv2.INTER_NEAREST)
                 self._last_mask_d = mask_u8
                 self._last_mask_d_shape = (H, W)
-        color_hm, height_hm, mask_hm = build_heightmaps(rgb_u8=rgb, xyz=xyz, spec=self.spec, mask_u8=mask_u8)
+        if self.seg_mask_mode == "selected":
+            rgb_proj, xyz_proj = _apply_mask_to_scene(
+                rgb, xyz, mask_u8, dilate_px=self.seg_selected_mask_dilate_px
+            )
+        else:
+            rgb_proj, xyz_proj = rgb, xyz
+
+        color_hm, height_hm, mask_hm = build_heightmaps(
+            rgb_u8=rgb_proj, xyz=xyz_proj, spec=self.spec, mask_u8=mask_u8
+        )
 
         # Publish pointcloud from this pipeline (xyz in target_frame, rgb)
         if hasattr(self, "pub_pcd_d"):
@@ -849,8 +1073,15 @@ class HeightmapNode(Node):
             mask_u8 = np.zeros((H, W), dtype=np.uint8)
 
         # ---- build heightmap: color/height по всем точкам, mask_hm — проекция маски теми же формулами ----
+        if self.seg_mask_mode == "selected":
+            rgb_proj, xyz_proj = _apply_mask_to_scene(
+                rgb, xyz, mask_u8, dilate_px=self.seg_selected_mask_dilate_px
+            )
+        else:
+            rgb_proj, xyz_proj = rgb, xyz
+
         color_hm, height_hm, mask_hm = build_heightmaps(
-            rgb_u8=rgb, xyz=xyz, spec=self.spec, mask_u8=mask_u8
+            rgb_u8=rgb_proj, xyz=xyz_proj, spec=self.spec, mask_u8=mask_u8
         )
 
         # ---- merge into accumulator (fill pixels that have data) ----

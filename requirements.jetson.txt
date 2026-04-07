@@ -1,0 +1,14 @@
+numpy<2
+scipy==1.11.4
+pillow
+pyyaml
+tqdm
+transforms3d
+pymodbus>=3,<4
+matplotlib
+requests
+psutil
+py-cpuinfo
+pandas
+seaborn
+segmentation-models-pytorch==0.3.3

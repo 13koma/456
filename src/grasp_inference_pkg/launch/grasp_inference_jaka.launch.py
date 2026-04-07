@@ -49,6 +49,10 @@ def generate_launch_description():
                 "seg_iou": 0.7,
                 "seg_force_cpu": False,
                 "seg_mask_persist_frames": 5,
+                "seg_mask_mode": "selected",
+                "seg_selection_rule": "highest_conf",
+                "seg_target_class": "green_peas_canned",
+                "seg_selected_mask_dilate_px": 7,
                 "accumulate_frames": 10,
                 "min_coverage": 0.02,
             }]

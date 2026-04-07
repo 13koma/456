@@ -55,6 +55,31 @@ Support scenes with multiple visible objects while keeping the current grasp mod
   - or leftmost/rightmost instance
   - or highest-confidence instance of a chosen class
 
+## Current MVP Status
+- `grasp_node.py` now supports:
+  - `seg_mask_mode = "union"` or `"selected"`
+  - `seg_selection_rule = "highest_conf" | "leftmost" | "rightmost" | "first"`
+  - `seg_target_class = "<class_name>"` for exact class filtering
+- Active launch currently uses:
+  - `seg_mask_mode = "selected"`
+  - `seg_selection_rule = "highest_conf"`
+  - `seg_target_class = ""`
+- This means only one non-background YOLO instance is forwarded into the heightmap path.
+
+## Current Test Set
+- `water_bottle_plain`
+- canned product candidate: corn can
+- small juice carton / box-like product
+
+## Immediate Test Goal
+1. Put three products in one camera frame.
+2. Confirm YOLO sees several instances on `~/debug/yolo_mask_on_image_raw`.
+3. Confirm only one instance survives into `/heightmap_node/heightmap/mask`.
+4. Confirm `q_canvas` and `object_center` are now computed on the cleaned single-object scene.
+5. After that, switch selection from generic `highest_conf` to either:
+   - a fixed `seg_target_class`
+   - or a deterministic spatial rule like `leftmost/rightmost`
+
 
 ## Future Extensions
 - Per-object grasp scoring instead of pre-selecting one object first.

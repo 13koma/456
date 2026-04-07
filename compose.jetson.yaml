@@ -1,0 +1,48 @@
+services:
+  grasp-jetson:
+    build:
+      context: .
+      dockerfile: Dockerfile.jetson
+      args:
+        USERNAME: ${LOCAL_USER:-dev}
+        USER_UID: ${LOCAL_UID:-1000}
+        USER_GID: ${LOCAL_GID:-1000}
+        BASE_IMAGE: ${JETSON_BASE_IMAGE:-nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1-py3}
+    image: grasp-jetson:humble
+    container_name: grasp-jetson
+    stdin_open: true
+    tty: true
+    network_mode: host
+    privileged: true
+    runtime: nvidia
+    shm_size: "4gb"
+    working_dir: /workspaces/grasp_jaka_ws
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-21}
+      ROS_LOCALHOST_ONLY: ${ROS_LOCALHOST_ONLY:-0}
+      JAKA_ROBOT_IP: ${JAKA_ROBOT_IP:-10.5.5.100}
+      JAKA_ROBOT_MODEL: ${JAKA_ROBOT_MODEL:-zu12}
+      GRIPPER_PORT: ${GRIPPER_PORT:-/dev/ttyUSB0}
+      CAMERA_NAMESPACE: ${CAMERA_NAMESPACE:-/camera/camera}
+    volumes:
+      - ./:/workspaces/grasp_jaka_ws:rw
+      - grasp_jetson_build:/workspaces/grasp_jaka_ws/build
+      - grasp_jetson_install:/workspaces/grasp_jaka_ws/install
+      - grasp_jetson_log:/workspaces/grasp_jaka_ws/log
+      - grasp_jetson_ros_home:/home/${LOCAL_USER:-dev}/.ros
+      - grasp_jetson_pip_cache:/home/${LOCAL_USER:-dev}/.cache/pip
+      - grasp_jetson_ccache:/home/${LOCAL_USER:-dev}/.ccache
+      - /dev:/dev
+    command: ./scripts/container_start.sh
+    restart: unless-stopped
+
+volumes:
+  grasp_jetson_build:
+  grasp_jetson_install:
+  grasp_jetson_log:
+  grasp_jetson_ros_home:
+  grasp_jetson_pip_cache:
+  grasp_jetson_ccache:
