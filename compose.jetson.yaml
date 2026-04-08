@@ -17,7 +17,6 @@ services:
     runtime: nvidia
     shm_size: "4gb"
     working_dir: /workspaces/grasp_jaka_ws
-    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     environment:
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: all
