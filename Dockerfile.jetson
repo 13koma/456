@@ -120,10 +120,14 @@ RUN if getent passwd ${USER_UID} >/dev/null; then \
     && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USERNAME} \
     && chmod 0440 /etc/sudoers.d/${USERNAME}
 
+RUN USER_GROUP="$(id -gn ${USERNAME})" \
+    && echo "${USER_GROUP}" > /tmp/jetson_user_group
+
 RUN mkdir -p ${ROS_WS}/src /opt/devtools
 COPY scripts/container_entrypoint.sh /opt/devtools/container_entrypoint.sh
-RUN chmod +x /opt/devtools/container_entrypoint.sh \
-    && chown -R ${USERNAME}:${USERNAME} ${ROS_WS}
+RUN USER_GROUP="$(cat /tmp/jetson_user_group)" \
+    && chmod +x /opt/devtools/container_entrypoint.sh \
+    && chown -R ${USERNAME}:${USER_GROUP} ${ROS_WS}
 
 USER ${USERNAME}
 WORKDIR ${ROS_WS}
