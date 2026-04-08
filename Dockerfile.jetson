@@ -107,8 +107,9 @@ RUN python3 -m pip install --no-deps ultralytics==8.3.39
 
 RUN rosdep init 2>/dev/null || true && rosdep update
 
-RUN groupadd --gid ${USER_GID} ${USERNAME} \
-    && useradd --uid ${USER_UID} --gid ${USER_GID} -m ${USERNAME} -s /bin/bash \
+RUN if ! getent group ${USER_GID} >/dev/null; then groupadd --gid ${USER_GID} ${USERNAME}; fi \
+    && USER_GROUP="$(getent group ${USER_GID} | cut -d: -f1)" \
+    && useradd --uid ${USER_UID} --gid "${USER_GROUP}" -m ${USERNAME} -s /bin/bash \
     && usermod -aG sudo,dialout,video,plugdev ${USERNAME} \
     && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USERNAME} \
     && chmod 0440 /etc/sudoers.d/${USERNAME}
