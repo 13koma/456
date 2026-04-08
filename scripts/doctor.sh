@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source /opt/ros/humble/setup.bash
+export ROS_DISTRO="${ROS_DISTRO:-jazzy}"
+source "/opt/ros/${ROS_DISTRO}/setup.bash"
 if [ -f "$ROS_WS/install/setup.bash" ]; then
   source "$ROS_WS/install/setup.bash"
 fi

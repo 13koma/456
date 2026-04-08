@@ -5,7 +5,7 @@ This project has a separate headless Docker runtime for Jetson Orin devices.
 ## Assumptions
 
 - Jetson Orin Nano / Orin NX class device.
-- JetPack 6.x with Ubuntu 22.04, so ROS 2 Humble apt packages are available.
+- JetPack 6.2 with Ubuntu 24.04, so ROS 2 Jazzy apt packages are available.
 - NVIDIA container runtime is installed and Docker can access the Jetson GPU.
 - RViz/RQT are run from a laptop on the same ROS network, not inside the Jetson runtime container.
 
@@ -20,39 +20,41 @@ This project has a separate headless Docker runtime for Jetson Orin devices.
 The default base image is:
 
 ```bash
-nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1-py3
+nvcr.io/nvidia/pytorch:25.05-py3-igpu
 ```
 
-This must match the JetPack/L4T version installed on the Jetson. Override it with:
+This must match the JetPack/L4T version installed on the Jetson. For JetPack 6.2,
+NVIDIA publishes compatible PyTorch container releases in the 25.03-25.06 range.
+Override it with:
 
 ```bash
-export JETSON_BASE_IMAGE=<your-compatible-l4t-pytorch-image>
+export JETSON_BASE_IMAGE=<your-compatible-jetson-pytorch-image>
 ```
 
 ## Build On Jetson
 
 ```bash
 cd ~/grasp_dev_env_v2
-docker compose -f compose.jetson.yaml build
+sudo docker-compose -f compose.jetson.yaml build
 ```
 
 ## Start Runtime
 
 ```bash
-docker compose -f compose.jetson.yaml up -d
+sudo docker-compose -f compose.jetson.yaml up -d
 ```
 
 ## Enter Container
 
 ```bash
-docker exec -it grasp-jetson bash
+sudo docker exec -it grasp-jetson bash
 ```
 
 Inside the container:
 
 ```bash
 cd /workspaces/grasp_jaka_ws
-source /opt/ros/humble/setup.bash
+source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 ```
 

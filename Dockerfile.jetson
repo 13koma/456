@@ -2,15 +2,16 @@
 #
 # Target platform:
 # - Jetson Orin family
-# - JetPack 6.x / Ubuntu 22.04 / ROS 2 Humble
+# - JetPack 6.2 / Ubuntu 24.04 / ROS 2 Jazzy
 #
 # PyTorch on Jetson must match the installed JetPack/L4T version.
-# Override BASE_IMAGE if your JetPack uses a different L4T/PyTorch container.
-ARG BASE_IMAGE=nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1-py3
+# JetPack 6.2 maps to NVIDIA PyTorch container releases 25.03-25.06.
+# Override BASE_IMAGE if your JetPack uses a different compatible container.
+ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:25.05-py3-igpu
 FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    ROS_DISTRO=humble \
+    ROS_DISTRO=jazzy \
     ROS_WS=/workspaces/grasp_jaka_ws \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
@@ -23,7 +24,7 @@ ARG USER_GID=1000
 
 SHELL ["/bin/bash", "-lc"]
 
-# Install ROS 2 Humble from the official apt repository.
+# Install ROS 2 Jazzy from the official apt repository.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \

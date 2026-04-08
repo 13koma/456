@@ -7,8 +7,8 @@ services:
         USERNAME: ${LOCAL_USER:-dev}
         USER_UID: ${LOCAL_UID:-1000}
         USER_GID: ${LOCAL_GID:-1000}
-        BASE_IMAGE: ${JETSON_BASE_IMAGE:-nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1-py3}
-    image: grasp-jetson:humble
+        BASE_IMAGE: ${JETSON_BASE_IMAGE:-nvcr.io/nvidia/pytorch:25.05-py3-igpu}
+    image: grasp-jetson:jazzy
     container_name: grasp-jetson
     stdin_open: true
     tty: true

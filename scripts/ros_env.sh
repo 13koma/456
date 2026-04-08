@@ -2,9 +2,10 @@
 set -eo pipefail
 
 export ROS_WS="${ROS_WS:-/workspaces/grasp_jaka_ws}"
+export ROS_DISTRO="${ROS_DISTRO:-jazzy}"
 
 set +u
-source /opt/ros/humble/setup.bash
+source "/opt/ros/${ROS_DISTRO}/setup.bash"
 if [ -f "${ROS_WS}/install/setup.bash" ]; then
   source "${ROS_WS}/install/setup.bash"
 fi
