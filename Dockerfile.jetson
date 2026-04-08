@@ -66,7 +66,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-vcstool \
     python3-rosdep \
     python3-argcomplete \
-    python3-ament-package \
     python3-opencv \
     libgl1 \
     libglib2.0-0 \
