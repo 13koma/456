@@ -13,9 +13,12 @@ services:
     stdin_open: true
     tty: true
     network_mode: host
-    privileged: true
     runtime: nvidia
+    ipc: host
     shm_size: "4gb"
+    ulimits:
+      memlock: -1
+      stack: 67108864
     working_dir: /workspaces/grasp_jaka_ws
     environment:
       NVIDIA_VISIBLE_DEVICES: all
@@ -34,7 +37,6 @@ services:
       - grasp_jetson_ros_home:/home/${LOCAL_USER:-dev}/.ros
       - grasp_jetson_pip_cache:/home/${LOCAL_USER:-dev}/.cache/pip
       - grasp_jetson_ccache:/home/${LOCAL_USER:-dev}/.ccache
-      - /dev:/dev
     command: ./scripts/container_start.sh
     restart: unless-stopped
 
